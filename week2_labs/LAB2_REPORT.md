@@ -10,7 +10,28 @@
 ### Repository Setup
 - **GitHub Repository:** [J4ve/cccs106-projects](https://github.com/J4ve/cccs106-projects)
 - **Local Repository:** ✅ Initialized and connected
-- **Commit History:** [Number] commits with descriptive messages
+- **Commit History:** 
+    - **6f41ec8** (HEAD -> main, origin/main) — Edited `week2_labs/LAB2_REPORT.md` and added new screenshot to `lab2_screenshots`
+    - **05d128d** — Update `README.md` with new application information
+    - **8aa3414** — Add placeholder for enhanced calculator GUI
+    - **ecac55b** — Add Week 2 labs: Flet GUI applications
+    - **cd1877f** — Added batch file for activating virtual environment
+    - **c88fd94** — Lab 1 report markdown fix
+    - **a214252** — Lab 1 report markdown final edit
+    - **785c058** — Addition and fix of screenshots
+    - **01daa72** — Gitignore part 2?
+    - **09660d1** — Removed venv from tracking in the commits
+    - **eefe26c** — Last before delete
+    - **c76325f** — Week 2 part 2
+    - **daf48c8** — Delete `cccs106_env_bacsain` directory
+    - **266b70d** — Gitignore fix part 2
+    - **2dc4199** — Gitignore fix
+    - **ec4ab6f** — 3rd
+    - **a9bceac** — For Week 2 I guess
+    - **f53dc67** — Added md, screenshots, workspace, and hello world (not yet final)
+    - **08ccf19** — First
+
+
 
 ### Git Skills Demonstrated
 - ✅ Repository initialization and configuration
