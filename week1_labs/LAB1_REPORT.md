@@ -10,12 +10,12 @@ Create LAB1_REPORT.md:
 ## Environment Setup
 
 ### Python Installation
-- **Python Version:** [3.12.0]
+- **Python Version:** 3.12.0
 - **Installation Issues:** Workspace setup required specifying python `defaultInterpreterPath` in `settings.json` and corruption of virtual environment installation due to the moving of file directories.
 - **Virtual Environment Created:** ✅ cccs106_env_bacsain
 
 ### VS Code Configuration
-- **VS Code Version:** [e.g., 1.82.0]
+- **VS Code Version:** 1.103.2
 - **Python Extension:** ✅ Installed and configured
 - **Interpreter:** ✅ Set to `.\\cccs106-projects\\cccs106_env_bacsain\\Scripts\\python.exe` as the one in the instructions doesn't work in this case (Adjusted for specific workspace directory which is outside the main cccs106-projects folder)
 
