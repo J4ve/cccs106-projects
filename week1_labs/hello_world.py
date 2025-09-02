@@ -12,7 +12,7 @@ print("=" * 50)
 print("Hello, World!")
 print("Welcome to Python programming!")
 
-# Student information (replace with your details)
+# Student information
 student_name = "Jave Atanacio Bacsain"
 student_id = "231003016"
 program = "Bachelor of Science in Computer Science"
@@ -26,7 +26,7 @@ print(f"Year Level: {year_level}")
 
 # Basic calculations
 current_year = 2025
-birth_year = 2003  # Replace with your birth year
+birth_year = 2003
 age = current_year - birth_year
 
 print(f"\nAge Calculation:")
