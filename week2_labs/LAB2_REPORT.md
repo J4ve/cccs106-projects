@@ -24,14 +24,14 @@
 - **Status:** ✅ Completed
 - **Features:** Interactive greeting, student info display, dialog boxes
 - **UI Components:** Text, TextField, Buttons, Dialog, Containers
-- **Notes:** [Any challenges or observations]
+- **Notes:** Only added my personal information, works as instructed
 
 ### 2. personal_info_gui.py
 - **Status:** ✅ Completed
 - **Features:** Form inputs, dropdowns, radio buttons, profile generation
 - **UI Components:** TextField, Dropdown, RadioGroup, Containers, Scrolling
 - **Error Handling:** Input validation and user feedback
-- **Notes:** [Any challenges or observations]
+- **Notes:** Should not use dark mode in Windows settings to avoid visibility inconsistency
 
 ## Technical Skills Developed
 
@@ -49,22 +49,34 @@
 
 ## Challenges and Solutions
 
-[Describe any difficulties you encountered and how you solved them]
+Encountered issues when copying and pasting commit messages, which required editing through Nano, and faced Git ignore problems where changes weren’t properly synced. Resolved the latter by deleting the local `.gitignore` file and replacing it with a new one.
 
 ## Learning Outcomes
 
-[Reflect on what you learned about version control, GUI development, and collaborative programming]
+Learned how to use Git for version control, including creating branches, committing changes, and resolving Git ignore issues. Gained experience with GUI development using Python and Flet, and practiced collaborative programming skills by managing project files, integrating commits, and maintaining a clean repository structure
 
 ## Screenshots
 
+- **First Flet GUI:**  
+  ![First Flet GUI](lab2_screenshots/first_flet_gui.png)
+
+- **Personal Info GUI:**  
+  ![Personal Info GUI](lab2_screenshots/personal_info_gui.png)
+
+- **Generated Profile from Personal Info GUI:**  
+  ![Generated Profile](lab2_screenshots/generated_profile.png)
+
+- **Successful Git Push:**  
+  ![Successful Push](lab2_screenshots/successful_push.png)
+
 ### Git Repository
-- [ ] GitHub repository with commit history
-- [ ] Local git log showing commits
+- [✅] GitHub repository with commit history
+- [✅] Local git log showing commits
 
 ### GUI Applications
-- [ ] hello_flet.py running with all features
-- [ ] personal_info_gui.py with filled form and generated profile
+- [✅] hello_flet.py running with all features
+- [✅] personal_info_gui.py with filled form and generated profile
 
 ## Future Enhancements
 
-[Ideas for improving the applications or additional features to implement]
+For `enhanced_calculator.py`, add more advanced operations and possibly include unit conversion features. For `hello_flet.py` and `personal_info_gui.py`, improve the GUI to adapt to Windows themes (dark/light mode) and implement additional design enhancements for a better user experience.
