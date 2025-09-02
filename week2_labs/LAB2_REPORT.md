@@ -1,14 +1,14 @@
 # Lab 2 Report: Git Version Control and Flet GUI Development
 
-**Student Name:** [Your Full Name]
-**Student ID:** [Your Student ID]
-**Section:** [Your Section]
-**Date:** [Submission Date]
+**Student Name:** Jave Atanacio Bacsain
+**Student ID:** 231003016
+**Section:** BSCS-3A
+**Date:** September 3, 2025
 
 ## Git Configuration
 
 ### Repository Setup
-- **GitHub Repository:** [Your repository URL]
+- **GitHub Repository:** [J4ve/cccs106-projects](https://github.com/J4ve/cccs106-projects)
 - **Local Repository:** ✅ Initialized and connected
 - **Commit History:** [Number] commits with descriptive messages
 
