@@ -1,7 +1,7 @@
 @echo off
 REM Activate the virtual environment for CCCS_106 projects
 
-REM The project folder
+REM The project folder (navigate to it raaah)
 cd /d "%~dp0\cccs106-projects"
 
 REM Virtual environment activation
