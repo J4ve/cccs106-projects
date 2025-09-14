@@ -19,37 +19,46 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
                 )
     password = ft.TextField(
-                    label="Password", 
+                    label="Password",
+                    password=True,
                     hint_text="Enter your password",
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
                 )
     
-    async def login_click(e):
+    # ---- DIALOGS
 
-        
-        success_dialog = ft.AlertDialog(title=f"Welcome, {username.value}",
-                                        
-                                        )
-        failure_dialog = ft.AlertDialog(title="Login Failed",
-                                        
-                                        )
-        invalid_input_dialog = ft.AlertDialog(title="Input Error",
-                                              content=ft.Text("Please enter username and password"),
-                                              alignment=ft.alignment.center,
-                                              actions=[
-                                                  ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
-                                              ]
-                                              )
-        database_error_dialog = ft.AlertDialog(title="Database Error",
-                                               
-                                               )
-        
+    success_dialog = ft.AlertDialog(title=f"Login Successful",
+                                    alignment=ft.alignment.center,
+                                    content=f"Welcome {username}",
+                                    actions=[
+                                        ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
+                                    ]
+                                    )
+    failure_dialog = ft.AlertDialog(title="Login Failed",
+                                    
+                                    )
+    invalid_input_dialog = ft.AlertDialog(title="Input Error",
+                                            content=ft.Text("Please enter username and password"),
+                                            alignment=ft.alignment.center,
+                                            actions=[
+                                                ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
+                                            ]
+                                            )
+    database_error_dialog = ft.AlertDialog(title="Database Error",
+                                            
+                                            )
+    
+    async def login_click(e):
         print("clicked") # test ko lang if gumagana yung pag click ng submit
 
-        if username.value and password.value != "":
+        try:
             connect_db()
-        else:
-            page.open(invalid_input_dialog)
+            if username.value and password.value != "":
+                page.open(success_dialog)
+            else:
+                page.open(invalid_input_dialog)
+        except mysql.connector.Error as e:
+            page.open(failure_dialog)
 
         page.update()
 
