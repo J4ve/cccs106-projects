@@ -19,7 +19,8 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
                 )
     password = ft.TextField(
-                    label="Password", 
+                    label="Password",
+                    password=True,
                     hint_text="Enter your password",
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
                 )
