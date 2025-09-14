@@ -24,33 +24,54 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
                 )
     
+    # ---- DIALOGS ----
+    current_dialog = None
+
+    def close_dialog(e):
+        nonlocal current_dialog     # i'm currently trying out the nonlocal keyword
+        if current_dialog:          # also, i'm trying to use this function as an experiment (closing dialogs)
+            page.close(current_dialog)   # (alternative for lambda functions inside each dialog actions)
+            page.update()
+            current_dialog = None
+
+    success_dialog = ft.AlertDialog(title=f"Login Successful",
+                                    alignment=ft.alignment.center,
+                                    content=f"Welcome {username}",
+                                    actions=[
+                                        ft.TextButton("OK", on_click=close_dialog)
+                                    ]
+                                    )
+                                    
+    failure_dialog = ft.AlertDialog(title="Login Failed",
+                                    
+                                    )
+    invalid_input_dialog = ft.AlertDialog(title="Input Error",
+                                            content=ft.Text("Please enter username and password"),
+                                            alignment=ft.alignment.center,
+                                            actions=[
+                                                ft.TextButton("OK", on_click=close_dialog)
+                                            ]
+                                            )
+    database_error_dialog = ft.AlertDialog(title="Database Error",
+                                            
+                                        )
+
     async def login_click(e):
+        nonlocal current_dialog
+        print("Submit clicked log") # test ko lang if gumagana yung pag click ng submit
 
-        
-        success_dialog = ft.AlertDialog(title=f"Welcome, {username.value}",
-                                        
-                                        )
-        failure_dialog = ft.AlertDialog(title="Login Failed",
-                                        
-                                        )
-        invalid_input_dialog = ft.AlertDialog(title="Input Error",
-                                              content=ft.Text("Please enter username and password"),
-                                              alignment=ft.alignment.center,
-                                              actions=[
-                                                  ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
-                                              ]
-                                              )
-        database_error_dialog = ft.AlertDialog(title="Database Error",
-                                               
-                                               )
-        
-        print("clicked") # test ko lang if gumagana yung pag click ng submit
-
-        if username.value and password.value != "":
+        try:
             connect_db()
-        else:
-            page.open(invalid_input_dialog)
+            if username.value and password.value != "":
+                current_dialog = success_dialog
+            else:
+                current_dialog = invalid_input_dialog
 
+
+        except mysql.connector.Error as e:
+            current_dialog = failure_dialog
+        
+        page.open(current_dialog)
         page.update()
 
 
