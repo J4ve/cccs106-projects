@@ -95,6 +95,7 @@ def main(page: ft.Page):
 
     page.add(
         
+        #title
         ft.Text(
             "User Login",
             size=20, 
@@ -103,18 +104,22 @@ def main(page: ft.Page):
             
         ),
 
-        username, 
-        password,
+        #container for username, password
+        ft.Container(content=ft.Column(controls=[username, password],
+                                       spacing=20,
+                                       )
 
+                     ),
 
-        ft.Container(
-            ft.ElevatedButton(text="Login", 
-                              on_click=login_click, 
-                              width=100, 
-                              icon=ft.Icons.LOGIN
-                              ), 
-        )
-        #login_container.margin 
+        #container for the login button
+        ft.Container(content=ft.ElevatedButton(text="Login", 
+                                               on_click=login_click, 
+                                               width=100, 
+                                               icon=ft.Icons.LOGIN
+                                               ), 
+                    alignment=ft.alignment.top_right,
+                    margin=ft.margin.only(0,20,40,0)
+                    )
         
     )
 
