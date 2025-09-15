@@ -14,64 +14,108 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     username = ft.TextField(
-                    label="Username", 
+                    label="User name", 
                     hint_text="Enter your username",
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
+                    icon=ft.Icons.PERSON,
+                    autofocus=True,
+                    helper_text="This is your unique identifier",
+                    width=300 
                 )
     password = ft.TextField(
                     label="Password",
                     password=True,
                     hint_text="Enter your password",
                     bgcolor=ft.Colors.LIGHT_BLUE_ACCENT,
+                    can_reveal_password=True,
+                    icon=ft.Icons.PASSWORD,
+                    helper_text="This is your secret key",
+                    width=300
                 )
     
-    # ---- DIALOGS
 
+    # ---- DIALOGS (I defined the dialogs outside the login_click(e) so that it 
+    # wouldn't be inefficient making the dialogs each click on login)
     success_dialog = ft.AlertDialog(title=f"Login Successful",
+                                    content=ft.Text(f"Welcome {username.value}", text_align=ft.TextAlign.CENTER),
                                     alignment=ft.alignment.center,
-                                    content=f"Welcome {username}",
                                     actions=[
-                                        ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
-                                    ]
+                                        ft.TextButton("OK", on_click=lambda e: page.close(success_dialog))
+                                    ],
+                                    icon=ft.Icon(name=ft.Icons.CHECK_CIRCLE, color=ft.Colors.GREEN)
                                     )
     failure_dialog = ft.AlertDialog(title="Login Failed",
-                                    
+                                    content=ft.Text(f"Invalid username and password", text_align=ft.TextAlign.CENTER),
+                                    alignment=ft.alignment.center,
+                                    actions=[
+                                        ft.TextButton("OK", on_click=lambda e: page.close(failure_dialog))
+                                    ],
+                                    icon=ft.Icon(name=ft.Icons.ERROR, color=ft.Colors.RED)
                                     )
     invalid_input_dialog = ft.AlertDialog(title="Input Error",
-                                            content=ft.Text("Please enter username and password"),
+                                            content=ft.Text("Please enter username and password", text_align=ft.TextAlign.CENTER),
                                             alignment=ft.alignment.center,
                                             actions=[
                                                 ft.TextButton("OK", on_click=lambda e: page.close(invalid_input_dialog))
-                                            ]
-                                            )
-    database_error_dialog = ft.AlertDialog(title="Database Error",
+                                            ],
+                                            icon=ft.Icon(name=ft.Icons.INFO, color=ft.Colors.BLUE)
                                             
                                             )
+    database_error_dialog = ft.AlertDialog(title="Database Error",
+                                            content=ft.Text("An error occurred while connecting to the database"),
+                                            actions=[
+                                                ft.TextButton("OK", on_click=lambda e: page.close(database_error_dialog))
+                                            ]
+                                            )
+
     
     async def login_click(e):
-        print("clicked") # test ko lang if gumagana yung pag click ng submit
-
+        print(f"Login button clicked") # test if gumagana yung pag click ng login
         try:
-            connect_db()
-            if username.value and password.value != "":
-                page.open(success_dialog)
+            connect = connect_db()
+            cursor = connect.cursor()
+            cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username.value, password.value))
+            user = cursor.fetchone()
+            # print(user)
+            # print(username.value) # for test purposes
+
+            if (username.value and password.value) != "":
+                if user != None:
+                    success_dialog.content.value = f"Welcome {username.value}"
+                    page.open(success_dialog)
+                else:
+                    page.open(failure_dialog)
             else:
                 page.open(invalid_input_dialog)
         except mysql.connector.Error as e:
-            page.open(failure_dialog)
+            page.open(database_error_dialog)
 
         page.update()
 
 
     page.add(
+        
         ft.Text(
             "User Login",
             size=20, 
-            weight=ft.FontWeight.BOLD
+            weight=ft.FontWeight.BOLD,
+            font_family="Arial"
+            
         ),
-        username,
+
+        username, 
         password,
-        ft.ElevatedButton(text="Submit", on_click=login_click),
+
+
+        ft.Container(
+            ft.ElevatedButton(text="Login", 
+                              on_click=login_click, 
+                              width=100, 
+                              icon=ft.Icons.LOGIN
+                              ), 
+        )
+        #login_container.margin 
+        
     )
 
-ft.app(main)
+ft.app(target=main)
