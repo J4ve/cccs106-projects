@@ -81,7 +81,7 @@ def main(page: ft.Page):
 
             if (username.value != "") and (password.value != ""):
                 if user != None:
-                    success_dialog.content.value = f"Welcome {username.value}"
+                    success_dialog.content.value = f"Welcome {username.value}" # fix, because the content doesnt change i have to manually do so
                     page.open(success_dialog)
                 else:
                     page.open(failure_dialog)
