@@ -79,7 +79,7 @@ def main(page: ft.Page):
             # print(user)
             # print(username.value) # for test purposes
 
-            if (username.value and password.value) != "":
+            if (username.value != "") and (password.value != ""):
                 if user != None:
                     success_dialog.content.value = f"Welcome {username.value}"
                     page.open(success_dialog)
