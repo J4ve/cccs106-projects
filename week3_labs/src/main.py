@@ -70,7 +70,7 @@ def main(page: ft.Page):
 
     
     async def login_click(e):
-        print(f"Login button clicked") # test if gumagana yung pag click ng login
+        print(f"Login button clicked.") # test if gumagana yung pag click ng login
         try:
             connect = connect_db()
             cursor = connect.cursor()
@@ -83,12 +83,16 @@ def main(page: ft.Page):
                 if user != None:
                     success_dialog.content.value = f"Welcome {username.value}" # fix, because the content doesnt change i have to manually do so
                     page.open(success_dialog)
+                    print("Login success!\n")
                 else:
                     page.open(failure_dialog)
+                    print("Login failed!\n")
             else:
                 page.open(invalid_input_dialog)
+                print("At least 1 text field is empty.\n")
         except mysql.connector.Error as e:
             page.open(database_error_dialog)
+            print("Database not connected.\n")
 
         page.update()
 
