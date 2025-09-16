@@ -72,29 +72,35 @@ def main(page: ft.Page):
     async def login_click(e):
         print(f"Login button clicked.") # test if gumagana yung pag click ng login
         try:
-            connect = connect_db()
-            cursor = connect.cursor()
-            cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username.value, password.value))
-            user = cursor.fetchone()
-            # print(user)
-            # print(username.value) # for test purposes
-
-            if (username.value != "") and (password.value != ""):
-                if user != None:
-                    success_dialog.content.value = f"Welcome {username.value}" # fix, because the content doesnt change i have to manually do so
-                    page.open(success_dialog)
-                    print("Login success!\n")
-                else:
-                    page.open(failure_dialog)
-                    print("Login failed!\n")
-            else:
+            # input validation first
+            if not username.value or not password.value:
                 page.open(invalid_input_dialog)
                 print("At least 1 text field is empty.\n")
-        except mysql.connector.Error as e:
+                page.update()
+                return  
+
+            connect = connect_db()
+            cursor = connect.cursor()
+            cursor.execute(
+                "SELECT * FROM users WHERE username=%s AND password=%s",
+                (username.value, password.value)
+            )
+            user = cursor.fetchone()
+
+            if user:
+                success_dialog.content.value = f"Welcome {username.value}"
+                page.open(success_dialog)
+                print("Login success!\n")
+            else:
+                page.open(failure_dialog)
+                print("Login failed!\n")
+
+        except Exception as e:  # catch both db and query issues
             page.open(database_error_dialog)
-            print("Database not connected.\n")
+            print(f"Database error: {e}\n")
 
         page.update()
+
 
 
     page.add(
