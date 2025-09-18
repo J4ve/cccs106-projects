@@ -38,8 +38,6 @@ def add_contact(page, inputs, contacts_list_view, db_conn):
     """Adds a new contact and refreshes the list."""
     name_input, phone_input, email_input = inputs
     
-
-
     try:        #input validation
         if not name_input.value:
             name_input.error_text = "Name cannot be empty"
@@ -53,7 +51,6 @@ def add_contact(page, inputs, contacts_list_view, db_conn):
 
     for field in inputs: 
         field.value = ""
-
 
     display_contacts(page, contacts_list_view, db_conn)
     page.update()
