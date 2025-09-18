@@ -37,16 +37,44 @@ def display_contacts(page, contacts_list_view, db_conn):
 def add_contact(page, inputs, contacts_list_view, db_conn):
     """Adds a new contact and refreshes the list."""
     name_input, phone_input, email_input = inputs
-    add_contact_db(db_conn, name_input.value, phone_input.value, email_input.value)
-    for field in inputs:
+    
+
+
+    try:        #input validation
+        if not name_input.value:
+            name_input.error_text = "Name cannot be empty"
+            raise Exception("name_input.value is EMPTY")
+            
+        else:
+            name_input.error_text = None
+            add_contact_db(db_conn, name_input.value, phone_input.value, email_input.value)
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+    for field in inputs: 
         field.value = ""
+
+
     display_contacts(page, contacts_list_view, db_conn)
     page.update()
 
 def delete_contact(page, contact_id, db_conn, contacts_list_view):
     """Deletes a contact and refreshes the list."""
-    delete_contact_db(db_conn, contact_id)
-    display_contacts(page, contacts_list_view, db_conn)
+    delete_confirmation_dialog = ft.AlertDialog(title="Delete?", 
+                                        content=ft.Text("Are you sure you want to delete this contact?", text_align=ft.TextAlign.CENTER), 
+                                        alignment=ft.alignment.center, 
+                                        actions=[
+                                            ft.TextButton("Yes", on_click=lambda e: (page.close(delete_confirmation_dialog), 
+                                                                                     delete_contact_db(db_conn, contact_id),
+                                                                                     display_contacts(page, contacts_list_view, db_conn)
+                                                                                     )
+                                                            )
+                                                ],
+                                        icon=ft.Icon(name=ft.Icons.INFO, color=ft.Colors.BLUE)
+                                        )
+    page.open(delete_confirmation_dialog)
+    page.update()
+                
 
 def open_edit_dialog(page, contact, db_conn, contacts_list_view):
     """Opens a dialog to edit a contact's details."""
