@@ -66,14 +66,18 @@ def delete_contact(page, contact_id, db_conn, contacts_list_view):
                                         actions=[
                                             ft.TextButton("Yes", on_click=lambda e: (page.close(delete_confirmation_dialog), 
                                                                                      delete_contact_db(db_conn, contact_id),
-                                                                                     display_contacts(page, contacts_list_view, db_conn)
+                                                                                     display_contacts(page, contacts_list_view, db_conn),
+                                                                                     page.update()
                                                                                      )
+                                                            ),
+                                            ft.TextButton("No", on_click=lambda e: page.close(delete_confirmation_dialog)
                                                             )
                                                 ],
                                         icon=ft.Icon(name=ft.Icons.INFO, color=ft.Colors.BLUE)
                                         )
+    
     page.open(delete_confirmation_dialog)
-    page.update()
+
                 
 
 def open_edit_dialog(page, contact, db_conn, contacts_list_view):
