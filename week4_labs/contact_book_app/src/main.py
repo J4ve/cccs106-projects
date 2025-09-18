@@ -9,7 +9,7 @@ def main(page: ft.Page):
     page.window_width = 400
     page.window_height = 600
     db_conn = init_db()
-    name_input = ft.TextField(label="Name", width=350)
+    name_input = ft.TextField(label="Name", width=350, error_text=None)
     phone_input = ft.TextField(label="Phone", width=350)
     email_input = ft.TextField(label="Email", width=350)
     inputs = (name_input, phone_input, email_input)
