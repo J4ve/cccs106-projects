@@ -1,7 +1,7 @@
 # main.py
 import flet as ft
 from database import init_db
-from app_logic import display_contacts, add_contact
+from app_logic import display_contacts, add_contact, search_contact
 
 def main(page: ft.Page):
     page.title = "Contact Book"
@@ -12,6 +12,12 @@ def main(page: ft.Page):
     name_input = ft.TextField(label="Name", width=350, error_text=None)
     phone_input = ft.TextField(label="Phone", width=350)
     email_input = ft.TextField(label="Email", width=350)
+    search_input = ft.TextField(label="Search", # I added the search_contact function from app_logic.py for the on_change event
+                                width=350, 
+                                icon=ft.Icons.SEARCH,
+                                on_change=lambda e: search_contact(search_input.value)
+                                )
+    
     inputs = (name_input, phone_input, email_input)
     contacts_list_view = ft.ListView(expand=1, spacing=10, auto_scroll=True)
     add_button = ft.ElevatedButton(
@@ -25,8 +31,11 @@ def main(page: ft.Page):
         phone_input,
         email_input,
         add_button,
+        
         ft.Divider(),
+
         ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
+        search_input,
         contacts_list_view,
         ])
         )
