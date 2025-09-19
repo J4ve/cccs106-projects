@@ -38,9 +38,9 @@ def main(page: ft.Page):
     
     
 
-    name_input = ft.TextField(label="Name", width=350, error_text=None)
-    phone_input = ft.TextField(label="Phone", width=350)
-    email_input = ft.TextField(label="Email", width=350)
+    name_input = ft.TextField(label="Name", width=350, error_text=None, icon=ft.Icons.PERSON)
+    phone_input = ft.TextField(label="Phone", width=350, icon=ft.Icons.CONTACT_PHONE)
+    email_input = ft.TextField(label="Email", width=350, icon=ft.Icons.EMAIL)
     search_input = ft.TextField(label="Search", # I added the search_contact function from app_logic.py for the on_change event
                                 width=350, 
                                 icon=ft.Icons.SEARCH,
