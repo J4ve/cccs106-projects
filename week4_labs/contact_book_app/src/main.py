@@ -1,6 +1,6 @@
 # main.py
 import flet as ft
-from database import init_db, create_samples_db
+from database import init_db, create_samples_db, delete_all_contacts
 from app_logic import display_contacts, add_contact
 
 def main(page: ft.Page):
@@ -9,7 +9,8 @@ def main(page: ft.Page):
     page.window_width = 400
     page.window_height = 600
     db_conn = init_db()
-    create_samples_db(db_conn)
+    #create_samples_db(db_conn)
+    #delete_all_contacts(db_conn)   # I added the functions delete and add sample contacts for test purposes
 
     def theme_changed(e):
         page.theme_mode = (

@@ -62,3 +62,8 @@ def create_samples_db(conn):
                 ('Jose Rizal', '09561234567', 'jose.rizal@example.com')
                 """)
     conn.commit()
+
+def delete_all_contacts(conn):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM contacts")
+    conn.commit()
