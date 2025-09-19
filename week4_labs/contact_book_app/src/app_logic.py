@@ -16,7 +16,7 @@ def display_contacts(page, contacts_list_view, db_conn, search_term=None):
                                     ft.ListTile(
                                         leading=ft.Icon(ft.Icons.PERSON),
                                         title=ft.Text(name),
-                                    # subtitle=(ft.Text(f"Phone: {phone} | Email: {email}"),), #i replaced the subtitle with rows
+                                        #subtitle=(ft.Text(f"Phone: {phone} | Email: {email}"),), #i replaced the subtitle with rows
                                         trailing=ft.PopupMenuButton(
                                                 icon=ft.Icons.MORE_VERT,
                                                 items=[
@@ -39,19 +39,18 @@ def display_contacts(page, contacts_list_view, db_conn, search_term=None):
                                     # phone row (icon + number)
                                     ft.Row(
                                         [ft.Icon(ft.Icons.PHONE), ft.Text(phone)],
-                                        spacing=8,
                                         alignment=ft.MainAxisAlignment.START,
                                     ),
 
                                     # email row (icon + address)
                                     ft.Row(
                                         [ft.Icon(ft.Icons.EMAIL), ft.Text(email)],
-                                        spacing=8,
                                         alignment=ft.MainAxisAlignment.START,
                                     ),
-                                ]
+                                ],
+                                
                             ),
-                            padding=25
+                            padding=ft.padding.only(15, 0, 0, 15)
                         )
                 
                 )

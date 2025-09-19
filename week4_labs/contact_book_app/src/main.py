@@ -33,7 +33,7 @@ def main(page: ft.Page):
         
     theme_switch = ft.Switch(label=("Light theme" if check_theme() == False else "Dark theme"),
                              value=check_theme(),
-                             on_change=theme_changed
+                             on_change=theme_changed,
                              )
     
     
@@ -62,20 +62,26 @@ def main(page: ft.Page):
     check_theme()
 
     page.add(
-    ft.Column([
-        theme_switch,
-        ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
-        name_input,
-        phone_input,
-        email_input,
-        add_button,
-        
-        ft.Divider(),
+        ft.Container(
+            content=theme_switch,
+            alignment=ft.alignment.top_center,
+            margin=ft.margin.only(top=30)
+            
+        ),
+        ft.Column([
+            
+            ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
+            name_input,
+            phone_input,
+            email_input,
+            add_button,
+            
+            ft.Divider(),
 
-        ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
-        search_input,
-        contacts_list_view,
-        ])
+            ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
+            search_input,
+            contacts_list_view,
+            ])
         )
     display_contacts(page, contacts_list_view, db_conn)
 
