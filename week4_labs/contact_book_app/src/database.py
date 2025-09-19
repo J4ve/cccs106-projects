@@ -16,6 +16,7 @@ def init_db():
         )
     conn.commit()
     return conn
+
 def add_contact_db(conn, name, phone, email):
     """Adds a new contact to the database."""
     cursor = conn.cursor()
@@ -28,7 +29,7 @@ def add_contact_db(conn, name, phone, email):
 def get_all_contacts_db(conn, search_term=None):
     """Retrieves all contacts from the database."""
     cursor = conn.cursor()
-    if search_term:
+    if search_term: #i added this so it could filter for search terms if the user inputs in search textfield
         cursor.execute("SELECT * FROM contacts WHERE name LIKE ?", ('%' + search_term + '%',))
     else:
         cursor.execute("SELECT id, name, phone, email FROM contacts")
@@ -49,3 +50,15 @@ def delete_contact_db(conn, contact_id):
     cursor.execute("DELETE FROM contacts WHERE id = ?", (contact_id,))
     conn.commit()
 
+def create_samples_db(conn):
+    """Example content, test for search feature"""
+    cursor = conn.cursor()
+    cursor.execute("""
+                INSERT INTO contacts (name, phone, email) VALUES
+                ('John Louie Bagaporo', '09171234567', 'john.bagaporo@example.com'),
+                ('Marc Justin Prestado', '09281234567', 'marc.prestado@example.com'),
+                ('Francis Gabriel Nonato', '09391234567', 'francis.nonato@example.com'),
+                ('Jave Bacsain', '09451234567', 'jave.bacsain@example.com'),
+                ('Jose Rizal', '09561234567', 'jose.rizal@example.com')
+                """)
+    conn.commit()
