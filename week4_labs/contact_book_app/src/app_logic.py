@@ -103,3 +103,4 @@ def open_edit_dialog(page, contact, db_conn, contacts_list_view):
             ],
         )
     page.open(dialog)
+

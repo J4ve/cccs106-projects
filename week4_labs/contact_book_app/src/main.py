@@ -11,6 +11,32 @@ def main(page: ft.Page):
     db_conn = init_db()
     create_samples_db(db_conn)
 
+    def theme_changed(e):
+        page.theme_mode = (
+            ft.ThemeMode.DARK
+            if page.theme_mode == ft.ThemeMode.LIGHT
+            else ft.ThemeMode.LIGHT
+        )
+        theme_switch.label = (
+            "Light theme" if page.theme_mode == ft.ThemeMode.LIGHT else "Dark theme"
+        )
+        page.update()
+
+    def check_theme():
+        if page.theme_mode == ft.ThemeMode.SYSTEM:  # in default its set to ThemeMode.SYSTEM, so i forced DARK mode
+            page.theme_mode = ft.ThemeMode.DARK
+        if page.theme_mode == ft.ThemeMode.DARK:
+            return True
+        else:
+            return False
+        
+    theme_switch = ft.Switch(label=("Light theme" if check_theme() == False else "Dark theme"),
+                             value=check_theme(),
+                             on_change=theme_changed
+                             )
+    
+    
+
     name_input = ft.TextField(label="Name", width=350, error_text=None)
     phone_input = ft.TextField(label="Phone", width=350)
     email_input = ft.TextField(label="Email", width=350)
@@ -32,9 +58,11 @@ def main(page: ft.Page):
         on_click=lambda e: add_contact(page, inputs, contacts_list_view, db_conn)
         )
     
+    check_theme()
 
     page.add(
     ft.Column([
+        theme_switch,
         ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
         name_input,
         phone_input,
