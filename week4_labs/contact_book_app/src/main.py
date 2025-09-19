@@ -33,14 +33,14 @@ def main(page: ft.Page):
         
     theme_switch = ft.Switch(label=("Light theme" if check_theme() == False else "Dark theme"),
                              value=check_theme(),
-                             on_change=theme_changed
+                             on_change=theme_changed,
                              )
     
     
 
-    name_input = ft.TextField(label="Name", width=350, error_text=None)
-    phone_input = ft.TextField(label="Phone", width=350)
-    email_input = ft.TextField(label="Email", width=350)
+    name_input = ft.TextField(label="Name", width=350, error_text=None, icon=ft.Icons.PERSON)
+    phone_input = ft.TextField(label="Phone", width=350, icon=ft.Icons.CONTACT_PHONE)
+    email_input = ft.TextField(label="Email", width=350, icon=ft.Icons.EMAIL)
     search_input = ft.TextField(label="Search", # I added the search_contact function from app_logic.py for the on_change event
                                 width=350, 
                                 icon=ft.Icons.SEARCH,
@@ -62,20 +62,26 @@ def main(page: ft.Page):
     check_theme()
 
     page.add(
-    ft.Column([
-        theme_switch,
-        ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
-        name_input,
-        phone_input,
-        email_input,
-        add_button,
-        
-        ft.Divider(),
+        ft.Container(
+            content=theme_switch,
+            alignment=ft.alignment.top_center,
+            margin=ft.margin.only(top=30)
+            
+        ),
+        ft.Column([
+            
+            ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
+            name_input,
+            phone_input,
+            email_input,
+            add_button,
+            
+            ft.Divider(),
 
-        ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
-        search_input,
-        contacts_list_view,
-        ])
+            ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
+            search_input,
+            contacts_list_view,
+            ])
         )
     display_contacts(page, contacts_list_view, db_conn)
 
