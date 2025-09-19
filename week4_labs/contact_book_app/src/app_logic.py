@@ -2,10 +2,10 @@
 import flet as ft
 from database import update_contact_db, delete_contact_db, add_contact_db, get_all_contacts_db
 
-def display_contacts(page, contacts_list_view, db_conn):
+def display_contacts(page, contacts_list_view, db_conn, search_term=None):
     """Fetches and displays all contacts in the ListView."""
     contacts_list_view.controls.clear()
-    contacts = get_all_contacts_db(db_conn)
+    contacts = get_all_contacts_db(db_conn, search_term)
     for contact in contacts:
         contact_id, name, phone, email = contact
         contacts_list_view.controls.append(
