@@ -9,29 +9,52 @@ def display_contacts(page, contacts_list_view, db_conn, search_term=None):
     for contact in contacts:
         contact_id, name, phone, email = contact
         contacts_list_view.controls.append(
-            ft.ListTile(
-                title=ft.Text(name),
-                subtitle=ft.Text(f"Phone: {phone} | Email: {email}"),
-                trailing=ft.PopupMenuButton(
-                    icon=ft.Icons.MORE_VERT,
-                    items=[
-                        ft.PopupMenuItem(
-                            text="Edit",
-                            icon=ft.Icons.EDIT,
-                            on_click=lambda _, c=contact: open_edit_dialog(page, c,
-                            db_conn, contacts_list_view)
+            ft.Card(
+                content=ft.Container(
+                            content=ft.Column(
+                                [
+                                    ft.ListTile(
+                                        leading=ft.Icon(ft.Icons.PERSON),
+                                        title=ft.Text(name),
+                                        #subtitle=(ft.Text(f"Phone: {phone} | Email: {email}"),), #i replaced the subtitle with rows
+                                        trailing=ft.PopupMenuButton(
+                                                icon=ft.Icons.MORE_VERT,
+                                                items=[
+                                                    ft.PopupMenuItem(
+                                                        text="Edit",
+                                                        icon=ft.Icons.EDIT,
+                                                        on_click=lambda _, c=contact: open_edit_dialog(page, c,
+                                                        db_conn, contacts_list_view)
+                                                        ),
+                                                    ft.PopupMenuItem(),
+                                                    ft.PopupMenuItem(
+                                                        text="Delete",
+                                                        icon=ft.Icons.DELETE,
+                                                        on_click=lambda _, cid=contact_id: delete_contact(page,
+                                                        cid, db_conn, contacts_list_view)
+                                                        ),
+                                                    ],
+                                                ),
+                                            ),
+                                    # phone row (icon + number)
+                                    ft.Row(
+                                        [ft.Icon(ft.Icons.PHONE), ft.Text(phone)],
+                                        alignment=ft.MainAxisAlignment.START,
+                                    ),
+
+                                    # email row (icon + address)
+                                    ft.Row(
+                                        [ft.Icon(ft.Icons.EMAIL), ft.Text(email)],
+                                        alignment=ft.MainAxisAlignment.START,
+                                    ),
+                                ],
+                                
                             ),
-                        ft.PopupMenuItem(),
-                        ft.PopupMenuItem(
-                            text="Delete",
-                            icon=ft.Icons.DELETE,
-                            on_click=lambda _, cid=contact_id: delete_contact(page,
-                            cid, db_conn, contacts_list_view)
-                            ),
-                        ],
-                    ),
+                            padding=ft.padding.only(15, 0, 0, 15)
+                        )
+                
                 )
-            )
+             )
         page.update()
 
 def add_contact(page, inputs, contacts_list_view, db_conn):
