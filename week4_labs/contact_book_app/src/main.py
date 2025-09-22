@@ -5,12 +5,20 @@ from app_logic import display_contacts, add_contact
 
 def main(page: ft.Page):
     page.title = "Contact Book"
-    page.vertical_alignment = ft.MainAxisAlignment.START
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_width = 400
     page.window_height = 600
     db_conn = init_db()
     #create_samples_db(db_conn)
     #delete_all_contacts(db_conn)   # I added the functions delete and add sample contacts for test purposes
+
+    def check_theme() -> bool:      # typehint to bool idk gusto ko lang for readability
+        if page.theme_mode == ft.ThemeMode.SYSTEM:  # in default its set to ThemeMode.SYSTEM, so i forced DARK mode
+            page.theme_mode = ft.ThemeMode.DARK
+        if page.theme_mode == ft.ThemeMode.DARK:
+            return True
+        else:
+            return False
 
     def theme_changed(e):
         page.theme_mode = (
@@ -18,29 +26,26 @@ def main(page: ft.Page):
             if page.theme_mode == ft.ThemeMode.LIGHT
             else ft.ThemeMode.LIGHT
         )
-        theme_switch.label = (
-            "Light theme" if page.theme_mode == ft.ThemeMode.LIGHT else "Dark theme"
+        theme_switch.icon = (
+            ft.Icons.LIGHT_MODE if check_theme() == False else ft.Icons.DARK_MODE
+        )
+        theme_switch.text = (
+            "Light Mode" if check_theme() == False else "Dark Mode"
         )
         page.update()
 
-    def check_theme():
-        if page.theme_mode == ft.ThemeMode.SYSTEM:  # in default its set to ThemeMode.SYSTEM, so i forced DARK mode
-            page.theme_mode = ft.ThemeMode.DARK
-        if page.theme_mode == ft.ThemeMode.DARK:
-            return True
-        else:
-            return False
+
         
-    theme_switch = ft.Switch(label=("Light theme" if check_theme() == False else "Dark theme"),
-                             value=check_theme(),
-                             on_change=theme_changed
-                             )
+    theme_switch = ft.ElevatedButton(text="Dark Mode",
+                            icon=ft.Icons.DARK_MODE,
+                            on_click=theme_changed,
+                            )
     
     
 
-    name_input = ft.TextField(label="Name", width=350, error_text=None)
-    phone_input = ft.TextField(label="Phone", width=350)
-    email_input = ft.TextField(label="Email", width=350)
+    name_input = ft.TextField(label="Name", width=350, error_text=None, icon=ft.Icons.PERSON)
+    phone_input = ft.TextField(label="Phone", width=350, icon=ft.Icons.CONTACT_PHONE)
+    email_input = ft.TextField(label="Email", width=350, icon=ft.Icons.EMAIL)
     search_input = ft.TextField(label="Search", # I added the search_contact function from app_logic.py for the on_change event
                                 width=350, 
                                 icon=ft.Icons.SEARCH,
@@ -62,20 +67,29 @@ def main(page: ft.Page):
     check_theme()
 
     page.add(
-    ft.Column([
-        theme_switch,
-        ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
-        name_input,
-        phone_input,
-        email_input,
-        add_button,
-        
-        ft.Divider(),
+        ft.Container(
+            content=ft.Row(
+                    [theme_switch],
+                    alignment=ft.MainAxisAlignment.END
+                ),
+            margin=ft.margin.only(top=30) # for mobile devices, sometimes its too high so I added margin on top
+        ),
 
-        ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
-        search_input,
-        contacts_list_view,
-        ])
+        ft.Column([ft.Text("Enter Contact Details:", size=20, weight=ft.FontWeight.BOLD),
+                    name_input,
+                    phone_input,
+                    email_input,
+                    add_button,
+                    
+                    ft.Divider(),
+
+                    ft.Text("Contacts:", size=20, weight=ft.FontWeight.BOLD),
+                    search_input,
+                    contacts_list_view,
+                    ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
         )
     display_contacts(page, contacts_list_view, db_conn)
 
