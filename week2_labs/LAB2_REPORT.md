@@ -91,12 +91,12 @@ Learned how to use Git for version control, including creating branches, committ
   ![Successful Push](lab2_screenshots/successful_push.png)
 
 ### Git Repository
-- [✅] GitHub repository with commit history
-- [✅] Local git log showing commits
+- [X] GitHub repository with commit history
+- [X] Local git log showing commits
 
 ### GUI Applications
-- [✅] hello_flet.py running with all features
-- [✅] personal_info_gui.py with filled form and generated profile
+- [X] hello_flet.py running with all features
+- [X] personal_info_gui.py with filled form and generated profile
 
 ## Future Enhancements
 
