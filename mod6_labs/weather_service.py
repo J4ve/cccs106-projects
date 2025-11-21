@@ -4,6 +4,7 @@
 import httpx
 from typing import Dict, Optional
 from config import Config
+from datetime import datetime
 
 
 class WeatherServiceError(Exception):
@@ -113,3 +114,49 @@ class WeatherService:
                 
         except Exception as e:
             raise WeatherServiceError(f"Error fetching weather data: {str(e)}")
+    
+    async def get_forecast(self, city: str) -> Dict: # for the forecast feature I added
+        """Get 5-day forecast."""
+        forecast_url = "https://api.openweathermap.org/data/2.5/forecast"
+        params = {
+            "q": city,
+            "appid": self.api_key,
+            "units": Config.UNITS,
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(forecast_url, params=params)
+                
+                if response.status_code == 404:
+                    raise WeatherServiceError(
+                        f"City '{city}' not found. Please check the spelling."
+                    )
+                elif response.status_code == 401:
+                    raise WeatherServiceError(
+                        "Invalid API key. Please check your configuration."
+                    )
+                elif response.status_code >= 500:
+                    raise WeatherServiceError(
+                        "Weather service is currently unavailable. "
+                        "Please try again later."
+                    )
+                elif response.status_code != 200:
+                    raise WeatherServiceError(
+                        f"Error fetching forecast data: {response.status_code}"
+                    )
+                
+                return response.json()
+                
+        except httpx.TimeoutException:
+            raise WeatherServiceError(
+                "Request timed out. Please check your internet connection."
+            )
+        except httpx.NetworkError:
+            raise WeatherServiceError(
+                "Network error. Please check your internet connection."
+            )
+        except httpx.HTTPError as e:
+            raise WeatherServiceError(f"HTTP error occurred: {str(e)}")
+        except Exception as e:
+            raise WeatherServiceError(f"An unexpected error occurred: {str(e)}")

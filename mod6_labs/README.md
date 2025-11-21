@@ -81,6 +81,52 @@ This weather application is built with Python and the Flet framework. It provide
      - *Challenge*: **Async Function Button Click Error**. When I first wired up the button, I got a weird error: `TypeError: 'coroutine' object is not callable`. The app crashed every time I clicked the location button. I had no idea what a "coroutine object" even was at that point.
      - *Solution*: The issue was how I set up the button's `on_click`. I wrote `on_click=self.get_location_weather()` with parentheses, which called the function immediately instead of passing it as a callback. Since `get_location_weather()` is async, it returned a coroutine object, and the button didn't know what to do with that. I fixed it by using a lambda: `on_click=lambda e: self.page.run_task(self.get_location_weather)`. That way, the function only runs when the button is actually clicked, and `run_task()` handles the async execution properly.
 
+3. **5-Day Weather Forecast with Tabbed Interface**
+   - **Description**: The app now shows a 5-day weather forecast for any city you search. After you look up a city's current weather, a green "Show 5-Day Forecast" button appears. Click it, and you get tabs for each day of the week. Each tab displays that day's high and low temperatures (color-coded red for highs, blue for lows), the weather condition, an icon, and averages for humidity and wind speed. The forecast data comes from OpenWeather's forecast API, which returns weather predictions in 3-hour intervals. The app groups these intervals by day, calculates the min/max temperatures, and picks the most common weather condition to represent each day. You can switch back to the current weather view anytime by clicking "Show Current Weather."
+
+   - **Why I chose this feature**: I wanted to give the app more depth. Showing just the current weather felt incomplete. If you're planning your week, you need to see what's coming, not just what's happening right now. A 5-day forecast made the app more practical and realistic. It's the kind of feature you'd expect from any serious weather app. Plus, I was interested in learning how to work with tabbed interfaces in Flet and how to process more complex API data. It seemed like a good way to push myself beyond the basics.
+
+   - **Implementation Details**:
+     - Added `get_forecast(city)` method to `WeatherService` that hits OpenWeather's `/forecast` endpoint
+     - Forecast API returns 40 data points (3-hour intervals over 5 days), so I needed to process and group them
+     - Created `process_forecast_data(data)` method that:
+       - Loops through all 40 forecast entries
+       - Groups them by date using `datetime.strptime()` to parse the timestamp
+       - Collects temperatures, conditions, icons, humidity, and wind speed for each day
+       - Calculates daily min/max temps from all intervals in that day
+       - Finds the most common weather condition and icon using Python's `max()` with `key=conditions.count`
+       - Returns a clean list of 5 days with all the summary data
+     - Built `display_forecast(data)` method that:
+       - Creates a tab for each day using `ft.Tab`
+       - Each tab shows date, weather icon, condition, high/low temps with arrow icons, and humidity/wind stats
+       - Uses `ft.Tabs` component with 400px fixed height (originally tried `expand=True` but tabs wouldn't show)
+       - Includes fade-in animation matching the pattern from weather display
+     - Added forecast toggle button that switches between current weather and forecast views
+     - Made page scrollable with `self.page.scroll = ft.ScrollMode.AUTO` to fit forecast content
+     - Implemented smooth fade-out/fade-in transitions when toggling between views
+
+   - **Challenges and Solutions**:
+     - *Challenge*: **API Data Structure Confusion**. When I first hit the forecast endpoint, I got back this massive JSON response with 40 entries. I didn't understand what I was looking at. Each entry had timestamps, temperatures, weather conditions, and more. I couldn't figure out how to turn that into a simple 5-day forecast. It felt overwhelming.
+     - *Solution*: I spent time reading through the API response carefully. I realized each entry represented a 3-hour window, and the `dt_txt` field had the date and time. That was my key to grouping the data. I wrote a loop that parsed each timestamp with `datetime.strptime()`, extracted just the date, and grouped all entries by that date. Once I had entries grouped by day, I could calculate min/max temps and pick the most common weather condition. Breaking the problem down into steps made it manageable.
+
+     - *Challenge*: **Dictionary Grouping Logic**. I knew I needed to group forecast entries by day, but I didn't know how to structure it. I tried using a list at first, but that got messy fast. I couldn't easily check if a day already existed or append new data to it.
+     - *Solution*: Switched to a dictionary where the date string was the key and the value was another dictionary containing lists for temps, conditions, icons, etc. That made everything cleaner. I could check `if date_key not in daily_forecasts` to initialize a new day, then just append data to the existing lists. Once all data was grouped, I sorted the dictionary keys and took the first 5 days. It worked perfectly.
+
+     - *Challenge*: **Finding Most Common Weather Condition**. Each day had multiple weather conditions from different 3-hour intervals. Some days might be partly cloudy in the morning and rainy in the afternoon. I needed to pick one condition to represent the whole day, but I didn't know how.
+     - *Solution*: Used Python's `max()` function with a custom key: `max(set(conditions), key=conditions.count)`. This finds the condition that appears most frequently in the list. If a day had "clear" six times and "cloudy" twice, it would pick "clear." It was elegant once I learned about the `key` parameter.
+
+     - *Challenge*: **Tabs Not Displaying**. This one drove me crazy for a while. I built the entire forecast UI with tabs, but when I clicked "Show 5-Day Forecast," nothing appeared. The container was visible, the data was there, but the tabs were blank. Just empty space where the forecast should've been.
+     - *Solution*: The problem was `expand=True` on the `ft.Tabs` component. I thought that would make the tabs fill the available space, but instead it broke them completely. I replaced it with `height=400` to give the tabs a fixed height, and suddenly everything worked. The tabs appeared with all the forecast data. Sometimes you just have to try different approaches until something clicks.
+
+     - *Challenge*: **Opacity Reset Issue**. When I toggled from forecast back to current weather, nothing showed up. I checked the visibility flags, and they were correct. The container was supposed to be visible, but I couldn't see it. I was stuck trying to figure out what was hiding the weather display.
+     - *Solution*: Turns out the weather container's opacity was still set to 0 from when I faded it out earlier. Setting `visible=True` doesn't reset opacity. I had to manually reset it: set `opacity=0`, make it visible, update the page, then fade it back to `opacity=1`. Once I understood that visibility and opacity are separate properties, the fix was simple. Just had to handle both.
+
+     - *Challenge*: **Geolocation Not Showing Forecast Button**. When I used "Check My Weather" to get my location's weather, everything worked fine except the forecast button didn't appear. I could search for a city and the button would show up, but using geolocation left me without the option to view the forecast. That inconsistency was annoying.
+     - *Solution*: I realized I forgot to add the forecast toggle button logic inside `get_location_weather()`. I was storing the city name properly with `self.current_city = weather.get('name', '')`, but I never set the button to visible or reset its state. I copied the same lines from `get_weather()`: show the toggle button, reset the forecast state, update the button text and icon. After that, both city search and geolocation triggered the forecast button consistently.
+
+     - *Challenge*: **Loading Circle Overlap**. When I clicked "Show 5-Day Forecast," the loading circle would appear, which was fine. But the old weather container stayed visible behind it, creating this messy overlap. You'd see the current weather, the loading circle on top of it, and then the forecast would eventually replace everything. It looked unpolished.
+     - *Solution*: Added fade-out animations before showing the loading indicator. When fetching the forecast, I now fade out both `weather_container` and `forecast_container`, wait 0.2 seconds, then hide them before showing the loading circle. Same pattern when fetching new weather data. That way, the loading circle appears on a clean background. Small detail, but it made the whole experience feel smoother and more professional.
+
 
 ## Screenshots
 [Add 3-5 screenshots showing different aspects of your app]

@@ -16,6 +16,9 @@ from pathlib import Path
 # for geolocation support feature
 import httpx
 
+# for forecast date handling
+from datetime import datetime
+
 class WeatherApp:
     """Main Weather Application class."""
     
@@ -27,6 +30,10 @@ class WeatherApp:
         # For search history feature
         self.history_file = Path("search_history.json")
         self.search_history = self.load_history()
+        
+        # Track view mode
+        self.show_forecast = False
+        self.current_city = None
 
         self.build_ui()
 
@@ -55,7 +62,7 @@ class WeatherApp:
         return ft.Dropdown(
             label="Recent Searches",
             border_color=ft.Colors.BLUE_400,
-            width=350,
+            expand=True,
             options=[ft.dropdown.Option(city) for city in self.search_history],
             on_change=lambda e: self.on_history_select(e),
         )
@@ -72,9 +79,20 @@ class WeatherApp:
     # Geolocation feature
     async def get_location_weather(self):
         """Get weather for current location."""
+        # Fade out existing content
+        if self.weather_container.visible:
+            self.weather_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+        if self.forecast_container.visible:
+            self.forecast_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+        
         self.loading.visible = True
         self.error_message.visible = False
         self.weather_container.visible = False
+        self.forecast_container.visible = False
         self.page.update()
         try:
             async with httpx.AsyncClient() as client:
@@ -90,7 +108,15 @@ class WeatherApp:
                 weather = await self.weather_service.get_weather_by_coordinates(
                     lat, lon
                 )
+                # Store city name from weather data
+                self.current_city = weather.get('name', '')
                 await self.display_weather(weather)
+                
+                # Show forecast toggle button
+                self.forecast_toggle.visible = True
+                self.show_forecast = False
+                self.forecast_toggle.text = "Show 5-Day Forecast"
+                self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
         except Exception as e:
             self.show_error("Could not get your location. Please try again.")
         finally:
@@ -122,6 +148,7 @@ class WeatherApp:
         )
         
         self.page.padding = 20
+        self.page.scroll = ft.ScrollMode.AUTO  # Make page scrollable
         
         # Window properties are accessed via page.window object in Flet 0.28.3
         self.page.window.width = Config.APP_WIDTH
@@ -195,6 +222,26 @@ class WeatherApp:
             padding=20,
         )
         
+        # Forecast display container (initially hidden)
+        self.forecast_container = ft.Container(
+            visible=False,
+            bgcolor=ft.Colors.BLUE_50,
+            border_radius=10,
+            padding=20,
+        )
+        
+        # Toggle button for forecast
+        self.forecast_toggle = ft.ElevatedButton(
+            "Show 5-Day Forecast",
+            icon=ft.Icons.CALENDAR_MONTH,
+            visible=False,
+            on_click=self.toggle_forecast_view,
+            style=ft.ButtonStyle(
+                color=ft.Colors.WHITE,
+                bgcolor=ft.Colors.GREEN_700,
+            ),
+        )
+        
         # Error message
         self.error_message = ft.Text(
             "",
@@ -221,10 +268,12 @@ class WeatherApp:
                     self.city_input,
                     self.search_button,
                     self.geolocation_button,
+                    self.forecast_toggle,
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                     self.loading,
                     self.error_message,
                     self.weather_container,
+                    self.forecast_container,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=10,
@@ -235,6 +284,58 @@ class WeatherApp:
         """Handle search button click or enter key press."""
         self.page.run_task(self.get_weather)
     
+    def toggle_forecast_view(self, e):
+        """Toggle between current weather and forecast view."""
+        if self.show_forecast:
+            # Fade out forecast, show current weather
+            self.show_forecast = False
+            if self.forecast_container.visible:
+                self.page.run_task(self._fade_out_and_show_weather)
+            else:
+                self.weather_container.visible = True
+                self.forecast_toggle.text = "Show 5-Day Forecast"
+                self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
+                self.page.update()
+        else:
+            # Fade out weather, show forecast
+            self.show_forecast = True
+            if self.weather_container.visible:
+                self.page.run_task(self._fade_out_and_show_forecast)
+            else:
+                self.forecast_toggle.text = "Show Current Weather"
+                self.forecast_toggle.icon = ft.Icons.THERMOSTAT
+                self.page.run_task(self.get_and_display_forecast)
+                self.page.update()
+    
+    async def _fade_out_and_show_weather(self):
+        """Helper to fade out forecast and show weather."""
+        self.forecast_container.opacity = 0
+        self.page.update()
+        await asyncio.sleep(0.2)
+        self.forecast_container.visible = False
+        
+        # Show weather with fade in animation
+        self.weather_container.animate_opacity = 300
+        self.weather_container.opacity = 0
+        self.weather_container.visible = True
+        self.page.update()
+        
+        await asyncio.sleep(0.1)
+        self.weather_container.opacity = 1
+        self.forecast_toggle.text = "Show 5-Day Forecast"
+        self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
+        self.page.update()
+    
+    async def _fade_out_and_show_forecast(self):
+        """Helper to fade out weather and show forecast."""
+        self.weather_container.opacity = 0
+        self.page.update()
+        await asyncio.sleep(0.2)
+        self.weather_container.visible = False
+        self.forecast_toggle.text = "Show Current Weather"
+        self.forecast_toggle.icon = ft.Icons.THERMOSTAT
+        await self.get_and_display_forecast()
+    
     async def get_weather(self):
         """Fetch and display weather data."""
         city = self.city_input.value.strip()
@@ -244,10 +345,24 @@ class WeatherApp:
             self.show_error("Please enter a city name")
             return
         
+        # Store current city
+        self.current_city = city
+        
+        # Fade out existing content
+        if self.weather_container.visible:
+            self.weather_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+        if self.forecast_container.visible:
+            self.forecast_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+        
         # Show loading, hide previous results
         self.loading.visible = True
         self.error_message.visible = False
         self.weather_container.visible = False
+        self.forecast_container.visible = False
         self.page.update()
         
         try:
@@ -256,6 +371,12 @@ class WeatherApp:
             
             # Display weather
             await self.display_weather(weather_data)
+            
+            # Show forecast toggle button
+            self.forecast_toggle.visible = True
+            self.show_forecast = False
+            self.forecast_toggle.text = "Show 5-Day Forecast"
+            self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
             
         except Exception as e:
             self.show_error(str(e))
@@ -360,18 +481,19 @@ class WeatherApp:
         if not self.history_dropdown.options:
             self.history_dropdown.visible = False
         else:
-            self.history_dropdown.visible = True
-            self.history_dropdown.animate_opacity = 300
-            self.history_dropdown.opacity = 0
-            self.history_dropdown.visible = True
-            self.page.update() #appear lang if may laman na
+            if not self.history_dropdown.visible:
+                self.history_dropdown.animate_opacity = 300
+                self.history_dropdown.opacity = 0
+                self.history_dropdown.visible = True
+                self.page.update()
 
-            # Fade in
-            await asyncio.sleep(0.1)
-            self.history_dropdown.opacity = 1
-            self.page.update()
+                # Fade in
+                await asyncio.sleep(0.1)
+                self.history_dropdown.opacity = 1
+                self.page.update()
             
         self.weather_container.visible = True
+        self.forecast_container.visible = False
         self.error_message.visible = False
         self.page.update()
     
@@ -403,6 +525,226 @@ class WeatherApp:
         self.error_message.value = f"❌ {message}"
         self.error_message.visible = True
         self.weather_container.visible = False
+        self.page.update()
+    
+    async def get_and_display_forecast(self):
+        """Fetch and display forecast data."""
+        if not self.current_city:
+            return
+        
+        self.loading.visible = True
+        self.error_message.visible = False
+        self.forecast_container.visible = False
+        self.page.update()
+        
+        try:
+            forecast_data = await self.weather_service.get_forecast(self.current_city)
+            await self.display_forecast(forecast_data)
+        except Exception as e:
+            self.show_error(f"Error fetching forecast: {str(e)}")
+        finally:
+            self.loading.visible = False
+            self.page.update()
+    
+    def process_forecast_data(self, data: dict):
+        """Process forecast data and group by days."""
+        forecast_list = data.get('list', [])
+        daily_forecasts = {}
+        
+        for item in forecast_list:
+            # Extract date from timestamp
+            dt_txt = item.get('dt_txt', '')
+            date_obj = datetime.strptime(dt_txt, '%Y-%m-%d %H:%M:%S')
+            date_key = date_obj.strftime('%Y-%m-%d')
+            day_name = date_obj.strftime('%A')
+            
+            if date_key not in daily_forecasts:
+                daily_forecasts[date_key] = {
+                    'date': date_key,
+                    'day_name': day_name,
+                    'temps': [],
+                    'conditions': [],
+                    'icons': [],
+                    'humidity': [],
+                    'wind_speed': []
+                }
+            
+            # Collect data points
+            daily_forecasts[date_key]['temps'].append(item['main']['temp'])
+            daily_forecasts[date_key]['conditions'].append(
+                item['weather'][0]['description']
+            )
+            daily_forecasts[date_key]['icons'].append(
+                item['weather'][0]['icon']
+            )
+            daily_forecasts[date_key]['humidity'].append(item['main']['humidity'])
+            daily_forecasts[date_key]['wind_speed'].append(item['wind']['speed'])
+        
+        # Calculate daily summaries
+        processed = []
+        for date_key in sorted(daily_forecasts.keys())[:5]:  # Only take 5 days
+            day_data = daily_forecasts[date_key]
+            
+            # Find most common condition and icon
+            conditions = day_data['conditions']
+            most_common_condition = max(set(conditions), key=conditions.count)
+            
+            # Get icon from midday (or most common)
+            icons = day_data['icons']
+            most_common_icon = max(set(icons), key=icons.count)
+            
+            processed.append({
+                'date': day_data['date'],
+                'day_name': day_data['day_name'],
+                'temp_min': min(day_data['temps']),
+                'temp_max': max(day_data['temps']),
+                'condition': most_common_condition.title(),
+                'icon': most_common_icon,
+                'avg_humidity': sum(day_data['humidity']) / len(day_data['humidity']),
+                'avg_wind': sum(day_data['wind_speed']) / len(day_data['wind_speed'])
+            })
+        
+        return processed
+    
+    async def display_forecast(self, data: dict):
+        """Display 5-day forecast."""
+        city_name = data.get('city', {}).get('name', 'Unknown')
+        country = data.get('city', {}).get('country', '')
+        
+        # Process forecast data
+        daily_data = self.process_forecast_data(data)
+        
+        # Animate forecast container
+        self.forecast_container.animate_opacity = 300
+        self.forecast_container.opacity = 0
+        self.forecast_container.visible = True
+        self.page.update()
+        
+        # Create tabs for each day
+        tabs = []
+        for day in daily_data:
+            tab_content = ft.Container(
+                content=ft.Column(
+                    [
+                        # Date
+                        ft.Text(
+                            day['date'],
+                            size=14,
+                            color=ft.Colors.GREY_700,
+                        ),
+                        
+                        # Weather icon
+                        ft.Image(
+                            src=f"https://openweathermap.org/img/wn/{day['icon']}@2x.png",
+                            width=80,
+                            height=80,
+                        ),
+                        
+                        # Condition
+                        ft.Text(
+                            day['condition'],
+                            size=16,
+                            italic=True,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                        
+                        # Temperature range
+                        ft.Row(
+                            [
+                                ft.Icon(ft.Icons.ARROW_UPWARD, size=20, color=ft.Colors.RED_400),
+                                ft.Text(
+                                    f"{day['temp_max']:.1f}°C",
+                                    size=24,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.RED_700,
+                                ),
+                                ft.VerticalDivider(width=20),
+                                ft.Icon(ft.Icons.ARROW_DOWNWARD, size=20, color=ft.Colors.BLUE_400),
+                                ft.Text(
+                                    f"{day['temp_min']:.1f}°C",
+                                    size=24,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.BLUE_700,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        
+                        ft.Divider(),
+                        
+                        # Additional details
+                        ft.Row(
+                            [
+                                ft.Column(
+                                    [
+                                        ft.Icon(ft.Icons.WATER_DROP, size=24, color=ft.Colors.BLUE_700),
+                                        ft.Text("Humidity", size=12, color=ft.Colors.GREY_600),
+                                        ft.Text(
+                                            f"{day['avg_humidity']:.0f}%",
+                                            size=14,
+                                            weight=ft.FontWeight.BOLD,
+                                        ),
+                                    ],
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                ),
+                                ft.VerticalDivider(width=40),
+                                ft.Column(
+                                    [
+                                        ft.Icon(ft.Icons.AIR, size=24, color=ft.Colors.BLUE_700),
+                                        ft.Text("Wind", size=12, color=ft.Colors.GREY_600),
+                                        ft.Text(
+                                            f"{day['avg_wind']:.1f} m/s",
+                                            size=14,
+                                            weight=ft.FontWeight.BOLD,
+                                        ),
+                                    ],
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=10,
+                ),
+                padding=15,
+            )
+            
+            tabs.append(
+                ft.Tab(
+                    text=day['day_name'],
+                    content=tab_content,
+                )
+            )
+        
+        # Build forecast display with tabs
+        self.forecast_container.content = ft.Column(
+            [
+                # Title
+                ft.Text(
+                    f"5-Day Forecast: {city_name}, {country}",
+                    size=20,
+                    weight=ft.FontWeight.BOLD,
+                ),
+                
+                ft.Divider(),
+                
+                # Tabs
+                ft.Tabs(
+                    selected_index=0,
+                    animation_duration=300,
+                    tabs=tabs,
+                    height=400,  # Fixed height for tabs
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=10,
+        )
+        
+        # Fade in
+        await asyncio.sleep(0.1)
+        self.forecast_container.opacity = 1
+        self.forecast_container.visible = True
         self.page.update()
 
 
