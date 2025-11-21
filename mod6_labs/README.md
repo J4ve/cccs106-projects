@@ -267,23 +267,28 @@ This weather application is built with Python and the Flet framework. It provide
 
 ### Search History Feature
 ![Search History](assets/screenshots/feature1.png)
-*Search history dropdown menu with recent city searches*
+
+##### *Search history dropdown menu with recent city searches*
 
 ### Current Location Weather
 ![Geolocation](assets/screenshots/feature2.png)
-*Automatic location detection showing local weather*
+
+##### *Automatic location detection showing local weather*
 
 ### 5-Day Forecast
 ![Forecast](assets/screenshots/feature3.png)
-*Tabbed interface displaying 5-day weather forecast*
+
+##### *Tabbed interface displaying 5-day weather forecast*
 
 ### Caching & Offline Mode
 ![Caching](assets/screenshots/feature4.png)
-*Offline mode displaying cached weather data with timestamps*
+
+##### *Offline mode displaying cached weather data with timestamps*
 
 ### Watchlist Comparison with Cached Data
 ![Watchlist Comparison](assets/screenshots/feature4&5.png)
-*Multiple cities comparison view using cached data for faster loading*
+
+##### *Multiple cities comparison view using cached data for faster loading*
 
 ## Installation
 
