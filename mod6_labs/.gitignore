@@ -4,3 +4,4 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+search_history.json

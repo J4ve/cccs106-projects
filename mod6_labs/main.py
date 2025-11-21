@@ -1,9 +1,14 @@
 # main.py
 """Weather Application using Flet v0.28.3"""
 
+# Standard library imports
 import flet as ft
 from weather_service import WeatherService
 from config import Config
+
+# for search history feature
+import json
+from pathlib import Path
 
 
 class WeatherApp:
@@ -13,7 +18,51 @@ class WeatherApp:
         self.page = page
         self.weather_service = WeatherService()
         self.setup_page()
+
+        # For search history feature
+        self.history_file = Path("search_history.json")
+        self.search_history = self.load_history()
+
         self.build_ui()
+
+
+    # search history feature functions
+    def load_history(self):
+        """Load search history from file."""
+        if self.history_file.exists():
+            with open(self.history_file, 'r') as f:
+                return json.load(f)
+        return []
+    def save_history(self):
+        """Save search history to file."""
+        with open(self.history_file, 'w') as f:
+            json.dump(self.search_history, f)
+
+    def add_to_history(self, city: str):
+        """Add city to history."""
+        if city not in self.search_history:
+            self.search_history.insert(0, city)
+            self.search_history = self.search_history[:10]  # Keep last 10
+            self.save_history()
+
+    def build_history_dropdown(self):
+        """Build dropdown with search history."""
+        return ft.Dropdown(
+            label="Recent Searches",
+            width=350,
+            options=[ft.dropdown.Option(city) for city in self.search_history],
+            on_change=lambda e: self.on_history_select(e),
+        )
+    
+    def on_history_select(self, e):
+        """Handle selection from history dropdown."""
+        selected_city = e.control.value
+        if selected_city:
+            self.city_input.value = selected_city
+            self.page.update()
+            self.on_search(None)
+    # End of search history feature functions
+
     
     def setup_page(self):
         """Configure page settings."""
@@ -54,6 +103,9 @@ class WeatherApp:
             weight=ft.FontWeight.BOLD,
             color=ft.Colors.BLUE_700,
         )
+
+        # Search history dropdown
+        self.history_dropdown = self.build_history_dropdown()
         
         # City input field
         self.city_input = ft.TextField(
@@ -115,6 +167,7 @@ class WeatherApp:
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                     self.city_input,
                     self.search_button,
+                    self.history_dropdown,
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                     self.loading,
                     self.error_message,
@@ -245,6 +298,11 @@ class WeatherApp:
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=10,
         )
+
+        # Update search history
+        self.add_to_history(city_name)
+        self.save_history()
+        self.history_dropdown.options = [ft.dropdown.Option(city) for city in self.search_history]
         
         self.weather_container.visible = True
         self.error_message.visible = False
