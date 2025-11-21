@@ -6,10 +6,15 @@ import flet as ft
 from weather_service import WeatherService
 from config import Config
 
+# for animations
+import asyncio
+
 # for search history feature
 import json
 from pathlib import Path
 
+# for geolocation support feature
+import httpx
 
 class WeatherApp:
     """Main Weather Application class."""
@@ -45,10 +50,11 @@ class WeatherApp:
             self.search_history = self.search_history[:10]  # Keep last 10
             self.save_history()
 
-    def build_history_dropdown(self):
+    def build_history_dropdown(self) -> ft.Dropdown:
         """Build dropdown with search history."""
         return ft.Dropdown(
             label="Recent Searches",
+            border_color=ft.Colors.BLUE_400,
             width=350,
             options=[ft.dropdown.Option(city) for city in self.search_history],
             on_change=lambda e: self.on_history_select(e),
@@ -63,6 +69,45 @@ class WeatherApp:
             self.on_search(None)
     # End of search history feature functions
 
+    # Geolocation feature
+    async def get_location_weather(self):
+        """Get weather for current location."""
+        self.loading.visible = True
+        self.error_message.visible = False
+        self.weather_container.visible = False
+        self.page.update()
+        try:
+            async with httpx.AsyncClient() as client:
+                params = {
+                    "apiKey": Config.GEOLOCATION_API_KEY
+                }
+                print(f"API Key being used: {Config.GEOLOCATION_API_KEY}") #check if ginagamit talaga api
+                response = await client.get(Config.GEOLOCATION_BASE_URL, params=params) # i used ipgeolocation.io since nakita ko na accurate sya
+                print(f"Status code: {response.status_code}")  # test status code for what i got para sa documentation
+                print(f"Response text: {response.text}")  # test return
+                data = response.json()
+                lat, lon = data['latitude'], data['longitude']
+                weather = await self.weather_service.get_weather_by_coordinates(
+                    lat, lon
+                )
+                await self.display_weather(weather)
+        except Exception as e:
+            self.show_error("Could not get your location. Please try again.")
+        finally:
+            self.loading.visible = False
+            self.page.update()
+
+    def build_geolocation_button(self) -> ft.Button:
+        """Build button that uses the user's location"""
+        return ft.ElevatedButton(
+            "Check My Weather",
+            icon=ft.Icons.LOCATION_ON,
+            on_click=lambda e: self.page.run_task(self.get_location_weather),
+            style=ft.ButtonStyle(
+                color=ft.Colors.WHITE,
+                bgcolor=ft.Colors.BLUE_700,
+            )
+        )
     
     def setup_page(self):
         """Configure page settings."""
@@ -128,6 +173,13 @@ class WeatherApp:
             ),
         )
 
+        # Geolocation button
+        self.geolocation_button = self.build_geolocation_button()
+        if not self.history_dropdown.options:
+            self.history_dropdown.visible = False
+        else:
+            self.history_dropdown.visible = True #appear lang if may laman na
+
         # Theme toggle button
         self.theme_button = ft.IconButton(
             icon=ft.Icons.DARK_MODE,
@@ -165,9 +217,10 @@ class WeatherApp:
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
+                    self.history_dropdown,
                     self.city_input,
                     self.search_button,
-                    self.history_dropdown,
+                    self.geolocation_button,
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                     self.loading,
                     self.error_message,
@@ -230,7 +283,6 @@ class WeatherApp:
         self.page.update()
 
         # Fade in
-        import asyncio
         await asyncio.sleep(0.1)
         self.weather_container.opacity = 1
         self.page.update()
@@ -303,7 +355,22 @@ class WeatherApp:
         self.add_to_history(city_name)
         self.save_history()
         self.history_dropdown.options = [ft.dropdown.Option(city) for city in self.search_history]
-        
+
+        # Animate search history
+        if not self.history_dropdown.options:
+            self.history_dropdown.visible = False
+        else:
+            self.history_dropdown.visible = True
+            self.history_dropdown.animate_opacity = 300
+            self.history_dropdown.opacity = 0
+            self.history_dropdown.visible = True
+            self.page.update() #appear lang if may laman na
+
+            # Fade in
+            await asyncio.sleep(0.1)
+            self.history_dropdown.opacity = 1
+            self.page.update()
+            
         self.weather_container.visible = True
         self.error_message.visible = False
         self.page.update()

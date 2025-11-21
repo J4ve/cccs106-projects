@@ -16,7 +16,14 @@ class Config:
         "OPENWEATHER_BASE_URL", 
         "https://api.openweathermap.org/data/2.5/weather"
     )
-    
+
+   # Geolocation API Configuration
+    GEOLOCATION_API_KEY = os.getenv("apiKey", "")
+    GEOLOCATION_BASE_URL = os.getenv(
+        "GEOLOCATION_BASE_URL",
+        "https://api.ipgeolocation.io/ipgeo"
+        )
+
     # App Configuration
     APP_TITLE = "Weather App"
     APP_WIDTH = 400
