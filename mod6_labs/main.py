@@ -5,6 +5,7 @@
 import flet as ft
 from weather_service import WeatherService
 from config import Config
+from watchlist import Watchlist
 
 # for animations
 import asyncio
@@ -31,8 +32,12 @@ class WeatherApp:
         self.history_file = Path("search_history.json")
         self.search_history = self.load_history()
         
+        # For watchlist feature
+        self.watchlist = Watchlist()
+        
         # Track view mode
         self.show_forecast = False
+        self.show_comparison = False
         self.current_city = None
 
         self.build_ui()
@@ -75,6 +80,71 @@ class WeatherApp:
             self.page.update()
             self.on_search(None)
     # End of search history feature functions
+
+    # Watchlist feature functions
+    def toggle_watchlist(self, e):
+        """Add or remove current city from watchlist."""
+        if not self.current_city:
+            return
+        
+        if self.current_city in self.watchlist.get_all():
+            self.watchlist.remove(self.current_city)
+            self.watchlist_button.icon = ft.Icons.STAR_OUTLINE
+            self.watchlist_button.text = "Add to Watchlist"
+        else:
+            self.watchlist.add(self.current_city)
+            self.watchlist_button.icon = ft.Icons.STAR
+            self.watchlist_button.text = "Remove from Watchlist"
+        
+        self.update_comparison_button()
+        self.page.update()
+    
+    def update_comparison_button(self):
+        """Update comparison button visibility and text."""
+        count = self.watchlist.count()
+        if count >= 2:
+            self.comparison_button.visible = True
+            self.comparison_button.text = f"Compare {count} Cities"
+        else:
+            self.comparison_button.visible = False
+    
+    def toggle_comparison_view(self, e):
+        """Toggle between single weather and comparison view."""
+        if self.show_comparison:
+            # Go back to single view
+            self.show_comparison = False
+            self.comparison_button.text = f"Compare {self.watchlist.count()} Cities"
+            self.comparison_button.icon = ft.Icons.COMPARE_ARROWS
+            self.page.run_task(self._show_single_view)
+        else:
+            # Show comparison
+            self.show_comparison = True
+            self.comparison_button.text = "Back to Single View"
+            self.comparison_button.icon = ft.Icons.ARROW_BACK
+            self.page.run_task(self.display_comparison)
+    
+    async def _show_single_view(self):
+        """Return to single city weather view."""
+        # Fade out comparison
+        if self.comparison_container.visible:
+            self.comparison_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+            self.comparison_container.visible = False
+        
+        # Show weather or forecast
+        if self.current_city:
+            if self.show_forecast:
+                self.page.run_task(self.get_and_display_forecast)
+            else:
+                self.weather_container.animate_opacity = 300
+                self.weather_container.opacity = 0
+                self.weather_container.visible = True
+                self.page.update()
+                await asyncio.sleep(0.1)
+                self.weather_container.opacity = 1
+                self.page.update()
+    # End of watchlist feature functions
 
     def format_last_updated(self, timestamp: float) -> str:
         """Format timestamp to readable 'last updated' string."""
@@ -135,6 +205,18 @@ class WeatherApp:
                 self.show_forecast = False
                 self.forecast_toggle.text = "Show 5-Day Forecast"
                 self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
+                
+                # Show and update watchlist button
+                self.watchlist_button.visible = True
+                if self.current_city in self.watchlist.get_all():
+                    self.watchlist_button.icon = ft.Icons.STAR
+                    self.watchlist_button.text = "Remove from Watchlist"
+                else:
+                    self.watchlist_button.icon = ft.Icons.STAR_OUTLINE
+                    self.watchlist_button.text = "Add to Watchlist"
+                
+                # Update comparison button
+                self.update_comparison_button()
         except Exception as e:
             self.show_error("Could not get your location. Please try again.")
         finally:
@@ -225,6 +307,30 @@ class WeatherApp:
         else:
             self.history_dropdown.visible = True #appear lang if may laman na
 
+        # Watchlist button
+        self.watchlist_button = ft.ElevatedButton(
+            "Add to Watchlist",
+            icon=ft.Icons.STAR_OUTLINE,
+            visible=False,
+            on_click=self.toggle_watchlist,
+            style=ft.ButtonStyle(
+                color=ft.Colors.WHITE,
+                bgcolor=ft.Colors.PURPLE_700,
+            ),
+        )
+        
+        # Comparison button
+        self.comparison_button = ft.ElevatedButton(
+            "Compare Cities",
+            icon=ft.Icons.COMPARE_ARROWS,
+            visible=False,
+            on_click=self.toggle_comparison_view,
+            style=ft.ButtonStyle(
+                color=ft.Colors.WHITE,
+                bgcolor=ft.Colors.ORANGE_700,
+            ),
+        )
+
         # Theme toggle button
         self.theme_button = ft.IconButton(
             icon=ft.Icons.DARK_MODE,
@@ -242,6 +348,14 @@ class WeatherApp:
         
         # Forecast display container (initially hidden)
         self.forecast_container = ft.Container(
+            visible=False,
+            bgcolor=ft.Colors.BLUE_50,
+            border_radius=10,
+            padding=20,
+        )
+        
+        # Comparison display container (initially hidden)
+        self.comparison_container = ft.Container(
             visible=False,
             bgcolor=ft.Colors.BLUE_50,
             border_radius=10,
@@ -286,12 +400,15 @@ class WeatherApp:
                     self.city_input,
                     self.search_button,
                     self.geolocation_button,
+                    self.watchlist_button,
+                    self.comparison_button,
                     self.forecast_toggle,
                     ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
                     self.loading,
                     self.error_message,
                     self.weather_container,
                     self.forecast_container,
+                    self.comparison_container,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=10,
@@ -395,6 +512,18 @@ class WeatherApp:
             self.show_forecast = False
             self.forecast_toggle.text = "Show 5-Day Forecast"
             self.forecast_toggle.icon = ft.Icons.CALENDAR_MONTH
+            
+            # Show and update watchlist button
+            self.watchlist_button.visible = True
+            if self.current_city in self.watchlist.get_all():
+                self.watchlist_button.icon = ft.Icons.STAR
+                self.watchlist_button.text = "Remove from Watchlist"
+            else:
+                self.watchlist_button.icon = ft.Icons.STAR_OUTLINE
+                self.watchlist_button.text = "Add to Watchlist"
+            
+            # Update comparison button
+            self.update_comparison_button()
             
         except Exception as e:
             self.show_error(str(e))
@@ -852,6 +981,189 @@ class WeatherApp:
         await asyncio.sleep(0.1)
         self.forecast_container.opacity = 1
         self.forecast_container.visible = True
+        self.page.update()
+    
+    async def display_comparison(self):
+        """Display weather comparison for all cities in watchlist."""
+        cities = self.watchlist.get_all()
+        
+        if len(cities) < 2:
+            self.show_error("Add at least 2 cities to watchlist for comparison")
+            return
+        
+        # Fade out other containers
+        if self.weather_container.visible:
+            self.weather_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+            self.weather_container.visible = False
+        if self.forecast_container.visible:
+            self.forecast_container.opacity = 0
+            self.page.update()
+            await asyncio.sleep(0.2)
+            self.forecast_container.visible = False
+        
+        self.loading.visible = True
+        self.error_message.visible = False
+        self.page.update()
+        
+        # Fetch weather for all cities
+        weather_data_list = []
+        for city in cities:
+            try:
+                weather = await self.weather_service.get_weather(city)
+                weather_data_list.append(weather)
+            except Exception:
+                # Skip cities that fail
+                continue
+        
+        if not weather_data_list:
+            self.show_error("Could not fetch weather for any cities")
+            self.loading.visible = False
+            return
+        
+        # Build comparison cards
+        comparison_cards = []
+        for data in weather_data_list:
+            city_name = data.get("name", "Unknown")
+            country = data.get("sys", {}).get("country", "")
+            temp = data.get("main", {}).get("temp", 0)
+            feels_like = data.get("main", {}).get("feels_like", 0)
+            humidity = data.get("main", {}).get("humidity", 0)
+            description = data.get("weather", [{}])[0].get("description", "").title()
+            icon_code = data.get("weather", [{}])[0].get("icon", "01d")
+            wind_speed = data.get("wind", {}).get("speed", 0)
+            
+            # Check if from cache
+            is_offline = self.weather_service.is_offline
+            cache_timestamp = self.weather_service.cache.get_timestamp(city_name)
+            
+            # Build card components
+            card_components = [
+                ft.Text(
+                    f"{city_name}, {country}",
+                    size=18,
+                    weight=ft.FontWeight.BOLD,
+                ),
+            ]
+            
+            # Add offline indicator
+            if is_offline and cache_timestamp:
+                card_components.append(
+                    ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CLOUD_OFF, size=12, color=ft.Colors.ORANGE_700),
+                            ft.Text(
+                                "Cached",
+                                size=10,
+                                color=ft.Colors.ORANGE_700,
+                            ),
+                        ],
+                        tight=True,
+                        spacing=3,
+                    )
+                )
+            
+            card_components.extend([
+                ft.Image(
+                    src=f"https://openweathermap.org/img/wn/{icon_code}@2x.png",
+                    width=60,
+                    height=60,
+                ),
+                ft.Text(
+                    description,
+                    size=12,
+                    italic=True,
+                    text_align=ft.TextAlign.CENTER,
+                ),
+                ft.Text(
+                    f"{temp:.1f}°C",
+                    size=32,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.BLUE_900,
+                ),
+                ft.Text(
+                    f"Feels like {feels_like:.1f}°C",
+                    size=10,
+                    color=ft.Colors.GREY_600,
+                ),
+                ft.Divider(height=5),
+                ft.Row(
+                    [
+                        ft.Column(
+                            [
+                                ft.Icon(ft.Icons.WATER_DROP, size=16, color=ft.Colors.BLUE_700),
+                                ft.Text(f"{humidity}%", size=10),
+                            ],
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=2,
+                        ),
+                        ft.Column(
+                            [
+                                ft.Icon(ft.Icons.AIR, size=16, color=ft.Colors.BLUE_700),
+                                ft.Text(f"{wind_speed} m/s", size=10),
+                            ],
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=2,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                ),
+            ])
+            
+            card = ft.Container(
+                content=ft.Column(
+                    card_components,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=5,
+                ),
+                bgcolor=ft.Colors.WHITE,
+                border_radius=10,
+                padding=15,
+                width=200,
+            )
+            
+            comparison_cards.append(card)
+        
+        # Arrange cards in rows (3 per row)
+        rows = []
+        for i in range(0, len(comparison_cards), 3):
+            row_cards = comparison_cards[i:i+3]
+            rows.append(
+                ft.Row(
+                    row_cards,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=10,
+                    wrap=True,
+                )
+            )
+        
+        # Build comparison display
+        self.comparison_container.animate_opacity = 300
+        self.comparison_container.opacity = 0
+        self.comparison_container.visible = True
+        self.page.update()
+        
+        self.comparison_container.content = ft.Column(
+            [
+                ft.Text(
+                    f"Weather Comparison ({len(weather_data_list)} Cities)",
+                    size=20,
+                    weight=ft.FontWeight.BOLD,
+                ),
+                ft.Divider(),
+                *rows,
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=15,
+            scroll=ft.ScrollMode.AUTO,
+        )
+        
+        self.loading.visible = False
+        
+        # Fade in
+        await asyncio.sleep(0.1)
+        self.comparison_container.opacity = 1
         self.page.update()
 
 

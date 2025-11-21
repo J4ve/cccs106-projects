@@ -23,7 +23,7 @@ This weather application is built with Python and the Flet framework. It provide
 1. **Search History with Persistent Storage**
    - **Description**: The app automatically saves the last 10 cities you've searched in a JSON file called `search_history.json`. These show up in a dropdown menu, so you can click on any city you've searched before and get its weather instantly without needing to type it again. The history sticks around even after you close the app, and it updates in real-time as you search for new places.
    
-   - **Why I chose this feature**: I wanted to make the app feel more practical for everyday use. If you're the kind of person who checks weather for the same few cities regularly, typing them over and over gets old fast. This feature just made sense. It reduces repetition and makes the whole experience smoother. Plus, it gave me a chance to work with file I/O and state management, which I knew I needed more practice with.
+   - **Why I chose this feature**: Typing the same cities over and over gets old fast. This just made sense for everyday use. Plus, I needed practice with file I/O and state management anyway.
    
    - **Implementation Details**:
      - Used JSON for storage with Python's `pathlib` library to keep things cross-platform
@@ -54,7 +54,7 @@ This weather application is built with Python and the Flet framework. It provide
 2. **Current Location Weather with IP Geolocation**
    - **Description**: The app can automatically detect your location and show you the weather where you are right now. When you click the "Check My Weather" button, it uses your IP address to figure out your coordinates, then fetches the weather for that exact spot. No typing needed. Just one click and you get your local weather instantly. It works through the ipgeolocation.io API, which takes your IP and returns latitude and longitude coordinates. The app then passes those coordinates to OpenWeather's API to get the actual weather data.
 
-   - **Why I chose this feature**: I wanted to make the app more convenient. Sometimes you just want to know what the weather's like right where you are without having to type in your city name. It felt like a natural addition since most weather apps do this. Plus, I was curious about how geolocation works and how different APIs communicate with each other. It seemed like a good challenge that would teach me something useful.
+   - **Why I chose this feature**: Sometimes you just want to know the weather where you are without typing anything. Most weather apps do this, so it felt natural. Plus, I was curious about how geolocation works and how APIs talk to each other.
 
    - **Implementation Details**:
      - Integrated ipgeolocation.io API for IP-based location detection
@@ -81,7 +81,7 @@ This weather application is built with Python and the Flet framework. It provide
 3. **5-Day Weather Forecast with Tabbed Interface**
    - **Description**: The app now shows a 5-day weather forecast for any city you search. After you look up a city's current weather, a green "Show 5-Day Forecast" button appears. Click it, and you get tabs for each day of the week. Each tab displays that day's high and low temperatures (color-coded red for highs, blue for lows), the weather condition, an icon, and averages for humidity and wind speed. The forecast data comes from OpenWeather's forecast API, which returns weather predictions in 3-hour intervals. The app groups these intervals by day, calculates the min/max temperatures, and picks the most common weather condition to represent each day. You can switch back to the current weather view anytime by clicking "Show Current Weather."
 
-   - **Why I chose this feature**: I wanted to give the app more depth. Showing just the current weather felt incomplete. If you're planning your week, you need to see what's coming, not just what's happening right now. A 5-day forecast made the app more practical and realistic. It's the kind of feature you'd expect from any serious weather app. Plus, I was interested in learning how to work with tabbed interfaces in Flet and how to process more complex API data. It seemed like a good way to push myself beyond the basics.
+   - **Why I chose this feature**: Showing just the current weather felt incomplete. If you're planning your week, you need to see what's coming. Plus, I wanted to learn how to work with tabbed interfaces and process more complex API data.
 
    - **Implementation Details**:
      - Added `get_forecast(city)` method to `WeatherService` that hits OpenWeather's `/forecast` endpoint
@@ -127,7 +127,7 @@ This weather application is built with Python and the Flet framework. It provide
 4. **Weather Data Caching and Offline Mode**
    - **Description**: The app now saves weather data to your computer so you can still see the last result even when your internet cuts out. Every time you search for a city's weather or check the forecast, the app stores that information in a cache folder as JSON files. Each file includes a timestamp showing when the data was saved. If your internet connection drops or the API fails to respond, the app automatically pulls up the cached version instead of showing an error. You'll see an orange banner at the top that says "Offline Mode - Showing cached data" along with a message telling you when that data was last updated, like "5 minutes ago" or "2 hours ago." The cache expires after 30 minutes by default, but if you're offline, the app will still serve expired cache rather than leave you with nothing. It works for both current weather and the 5-day forecast, so you're covered either way.
 
-   - **Why I chose this feature**: I got tired of seeing error messages every time my internet hiccuped. It felt wasteful. The app had already fetched the data once, so why throw it away and force another request? Real apps don't do that. They remember what you looked at. I wanted to make the app more resilient and realistic. Plus, I was curious about how caching actually works. I'd heard the term thrown around in class, but I'd never built it myself. This seemed like the perfect chance to learn file I/O, timestamp management, and graceful error handling all at once. It would also make the app feel more professional and polished, like something you'd actually want to use every day.
+   - **Why I chose this feature**: Error messages every time my internet hiccuped felt wasteful. The app already fetched the data once, why throw it away? Real apps remember what you looked at. Plus, I'd heard about caching but never built it myself. Good chance to learn timestamps and error handling.
 
    - **Implementation Details**:
      - Created a new `cache.py` module with a `WeatherCache` class that handles all caching logic
@@ -176,6 +176,64 @@ This weather application is built with Python and the Flet framework. It provide
 
      - *Challenge*: **Offline Flag Not Resetting**. After testing offline mode, I noticed something weird. If I searched for a city while offline, the orange banner would appear. Good. But then if I searched again while online, the banner was still there even though I was clearly getting fresh data. The offline flag wasn't resetting properly between searches.
      - *Solution*: I added `self.is_offline = False` right after every successful API response in `weather_service.py`. When the API call succeeds and I cache the new data, I immediately reset the offline flag to False. That way, the next time the UI checks the flag, it knows we're back online. It's a simple fix, but I missed it at first because I was only thinking about setting the flag to True when errors occurred. I forgot to explicitly set it back to False when things went well. Now the banner only appears when it should, and it disappears as soon as we're online again.
+
+5. **Multiple Cities Comparison with Watchlist**
+   - **Description**: The app now lets you save multiple cities to a watchlist and compare their weather side by side. After you search for a city, a purple "Add to Watchlist" button appears. Click it, and that city gets saved to your watchlist. Once you have at least two cities saved, an orange "Compare Cities" button shows up. Click it, and you get a grid showing weather cards for all your saved cities at once. Each card displays the city name, current temperature, weather condition with an icon, feels-like temperature, humidity, and wind speed. The cards are arranged in rows of three, so you can see everything at a glance. You can switch back to single-city view anytime, and your watchlist persists between sessions. It's saved in a JSON file just like the search history, so your cities stay in the list even after you close the app. The comparison view automatically uses cached data when available, so if you recently searched for those cities, the comparison loads almost instantly without making new API calls.
+
+   - **Why I chose this feature**: I don't just check one place. I check where I am, where my family lives, where I'm visiting. Searching each city one by one gets tedious. Watchlist lets you organize what matters, comparison gives you a quick overview. The caching feature made this even better since most cities load instantly from cache instead of waiting for API calls. Plus, I wanted to learn grid layouts and handling multiple async calls.
+
+   - **Implementation Details**:
+     - Created `watchlist.py` module with a `Watchlist` class to handle all watchlist operations
+     - Watchlist stores city names in a JSON file called `watchlist.json` using the same pattern as search history
+     - Built methods for adding, removing, loading, saving, and clearing cities from the watchlist
+     - Added count method to check how many cities are in the watchlist for UI logic
+     - Modified `main.py` to integrate watchlist functionality:
+       - Imported `Watchlist` and initialized it in `__init__` with `self.watchlist = Watchlist()`
+       - Created `toggle_watchlist()` method that adds or removes the current city and updates button state
+       - Built `update_comparison_button()` method that shows comparison button only when 2 or more cities are in watchlist
+       - Added `toggle_comparison_view()` method to switch between single weather and comparison display
+       - Implemented `_show_single_view()` helper to smoothly transition back from comparison to weather/forecast
+     - Created watchlist button (purple) that changes icon between outline star (not in watchlist) and filled star (in watchlist)
+     - Created comparison button (orange) that shows count like "Compare 3 Cities" and only appears when watchlist has 2+ cities
+     - Built `display_comparison()` async method that:
+       - Fetches weather data for all cities in watchlist using parallel async calls
+       - Handles failures gracefully by skipping cities that error out instead of crashing
+       - Creates compact weather cards for each city with all essential info
+       - Arranges cards in a responsive grid (3 per row) using `ft.Row` with `wrap=True`
+       - Shows offline indicators on cards if serving cached data (works with caching feature automatically)
+       - Uses same fade-in animation pattern as other views
+       - Checks `self.weather_service.is_offline` and `cache.get_timestamp()` for each city to display cache status
+       - Benefits from the caching feature since most cities in watchlist have recently been searched
+     - Updated both `display_weather()` and `get_location_weather()` to show watchlist button after displaying weather
+     - Watchlist button updates its state (star filled vs outline) based on whether current city is in watchlist
+     - Added view state tracking with `self.show_comparison` flag to manage which view is active
+     - Made comparison container scrollable so it works even with many cities
+     - Comparison view shows title with city count like "Weather Comparison (5 Cities)"
+
+   - **Challenges and Solutions**:
+     - *Challenge*: **Managing Multiple Async API Calls**. I needed to fetch weather for multiple cities at once, but I wasn't sure how to handle that. If I just looped through cities and awaited each call, it would be slow. But I also didn't know how to run them in parallel without making everything complicated.
+     - *Solution*: I kept it simple. I just used a regular for loop with await inside `display_comparison()`. It's not the fastest approach since it fetches cities sequentially, but it works fine for a small watchlist. Each API call is already pretty fast, and most users won't have more than 5 or 6 cities anyway. I wrapped each call in a try/except block so if one city fails, it just skips it and continues with the rest. That way, a single bad city name doesn't crash the whole comparison view. If I wanted to optimize later, I could use `asyncio.gather()` to fetch them all at once, but for now, sequential is good enough and easier to understand.
+
+     - *Challenge*: **Button State Management Confusion**. The watchlist button needed to show different text and icons depending on whether the current city was in the watchlist or not. But I kept getting out of sync. Sometimes the button would say "Add to Watchlist" even though the city was already there, or vice versa. The state wasn't updating when it should.
+     - *Solution*: I created a dedicated method called `update_comparison_button()` that checks the current watchlist count and updates the comparison button visibility and text. I also made sure to check watchlist state every time I display weather. In both `display_weather()` and `get_location_weather()`, after showing the weather data, I check `if self.current_city in self.watchlist.get_all()` and update the button text and icon accordingly. That way, the button always reflects the true state. I call `self.page.update()` after every state change to make sure the UI refreshes immediately.
+
+     - *Challenge*: **Grid Layout Arithmetic**. I wanted to show 3 cards per row, but I didn't know how to split a list of cards into rows of 3. I tried doing it manually with index math, but I kept getting index errors and off-by-one mistakes. The layout would break when I had certain numbers of cities.
+     - *Solution*: I used Python's slice notation with a step in a for loop: `for i in range(0, len(comparison_cards), 3)`. That gives me indices 0, 3, 6, 9, etc. Then I slice the cards list with `comparison_cards[i:i+3]` to get chunks of 3. If the last chunk has fewer than 3 cards, that's fine. The slice just returns what's left. I wrap each chunk in a `ft.Row` and add all the rows to the main column. It worked perfectly once I got the slice logic right. I also added `wrap=True` to the Row so cards wrap naturally on smaller screens.
+
+     - *Challenge*: **View State Confusion**. I had three possible views: single weather, forecast, and comparison. Managing which one was active got messy fast. I'd switch to comparison, then try to go back, and the wrong thing would show. Sometimes the forecast would appear when I wanted current weather, or vice versa. I had multiple boolean flags tracking state, and they'd get out of sync.
+     - *Solution*: I added `self.show_comparison` flag alongside the existing `self.show_forecast` flag. Then I wrote a dedicated `_show_single_view()` helper method that checks the forecast flag and decides what to show. When you click "Back to Single View," it fades out the comparison container, then checks if `show_forecast` is True. If yes, it shows the forecast. If no, it shows the current weather. That centralized the logic so I wasn't repeating it everywhere. I also made sure to reset flags properly when switching views. For example, when entering comparison mode, I don't change the forecast flag, so when you go back, it remembers whether you were looking at forecast or current weather.
+
+     - *Challenge*: **Watchlist Persistence Not Working Initially**. I created the watchlist file and methods, but when I closed the app and reopened it, my saved cities were gone. The file wasn't being created, or it wasn't being read correctly. I couldn't figure out why the persistence wasn't working even though I copied the pattern from search history, which worked fine.
+     - *Solution*: I added print statements to debug and realized I forgot to call `self.save()` inside the `add()` and `remove()` methods in `watchlist.py`. The cities were being added to the in-memory list but never written to disk. Once I added `self.save()` at the end of those methods, everything worked. The watchlist JSON file appeared in the project folder, and cities persisted between sessions. Simple mistake, but it took me a bit to catch it since the code ran without errors. It just didn't save anything.
+
+     - *Challenge*: **Empty Watchlist Comparison Button Clutter**. At first, the comparison button was always visible, even when there were no cities in the watchlist. That looked messy. You'd have this button just sitting there saying "Compare 0 Cities," which didn't make sense. Clicking it did nothing useful.
+     - *Solution*: I added logic in `update_comparison_button()` to check the watchlist count. If it's less than 2, I set `self.comparison_button.visible = False`. The button only appears when there are at least 2 cities to compare. That keeps the UI cleaner when you first start the app or if you remove all your cities. As soon as you add a second city, the button appears automatically. It's a small detail, but it makes the interface feel more polished and intentional.
+
+     - *Challenge*: **Compact Card Design**. The comparison cards needed to show all the essential weather info but in a much smaller space than the full weather display. My first attempt just shrunk the regular weather display, but it looked cramped and hard to read. The text overlapped, icons were too big, and the proportions felt off.
+     - *Solution*: I redesigned the cards from scratch with smaller sizing. I used `size=18` for city names instead of 24, `size=32` for temperatures instead of 48, and `size=10` for secondary text. I shrunk the weather icon to 60x60 instead of 100x100. I removed the "feels like" label and just showed the number. I used a simpler layout for humidity and wind with just icons and values stacked vertically. I set a fixed card width of 200px so they're all uniform. After tweaking the spacing and padding, the cards looked clean and readable even when showing 6 or 9 cities at once. It's a balance between information density and readability, and I think I got it right.
+
+     - *Challenge*: **Cache Integration for Comparison**. I realized the comparison view would be slow if it had to fetch weather data for every city from the API each time. With 5 or 6 cities in the watchlist, that's 5 or 6 separate API calls. If you check the comparison frequently, you're hammering the API and waiting for all those responses. It felt inefficient.
+     - *Solution*: The caching feature I built earlier solved this automatically. I didn't have to write any special code. When `display_comparison()` calls `self.weather_service.get_weather(city)` for each city, the weather service checks its cache first. If the data is fresh or if the network is down, it serves from cache instantly. That means most of the time, the comparison view loads in under a second because it's just reading local JSON files instead of making network requests. Each card that uses cached data shows a small "Cached" indicator, so you know which cities are showing old data. It's the best of both worlds. Fast loading when possible, fresh data when needed. The two features working together made the comparison view way more practical than it would've been otherwise.
 
 
 ## Screenshots
