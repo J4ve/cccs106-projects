@@ -23,7 +23,8 @@ This weather application is built with Python and the Flet framework. It provide
 1. **Search History with Persistent Storage**
 
    ![Search History Demo](assets/gifs/feature1.gif)
-   *Dropdown menu showing search history and quick city selection*
+   
+   ##### *Dropdown menu showing search history and quick city selection*
 
    - **Description**: The app automatically saves the last 10 cities you've searched in a JSON file called `search_history.json`. These show up in a dropdown menu, so you can click on any city you've searched before and get its weather instantly without needing to type it again. The history sticks around even after you close the app, and it updates in real-time as you search for new places.
    
@@ -58,7 +59,8 @@ This weather application is built with Python and the Flet framework. It provide
 2. **Current Location Weather with IP Geolocation**
 
    ![Geolocation Demo](assets/gifs/feature2.gif)
-   *One-click location detection showing local weather instantly*
+   
+   ##### *One-click location detection showing local weather instantly*
 
    - **Description**: The app can automatically detect your location and show you the weather where you are right now. When you click the "Check My Weather" button, it uses your IP address to figure out your coordinates, then fetches the weather for that exact spot. No typing needed. Just one click and you get your local weather instantly. It works through the ipgeolocation.io API, which takes your IP and returns latitude and longitude coordinates. The app then passes those coordinates to OpenWeather's API to get the actual weather data.
 
@@ -89,10 +91,12 @@ This weather application is built with Python and the Flet framework. It provide
 3. **5-Day Weather Forecast with Tabbed Interface**
 
    ![Forecast Demo Part 1](assets/gifs/feature3.gif)
-   *Switching to forecast view and navigating through daily tabs*
+   
+   ##### *Switching to forecast view and navigating through daily tabs*
 
    ![Forecast Demo Part 2](assets/gifs/feature3_part2.gif)
-   *Detailed daily weather information with high/low temperatures*
+
+   ##### *Show current weather button (return)*
 
    - **Description**: The app now shows a 5-day weather forecast for any city you search. After you look up a city's current weather, a green "Show 5-Day Forecast" button appears. Click it, and you get tabs for each day of the week. Each tab displays that day's high and low temperatures (color-coded red for highs, blue for lows), the weather condition, an icon, and averages for humidity and wind speed. The forecast data comes from OpenWeather's forecast API, which returns weather predictions in 3-hour intervals. The app groups these intervals by day, calculates the min/max temperatures, and picks the most common weather condition to represent each day. You can switch back to the current weather view anytime by clicking "Show Current Weather."
 
@@ -142,7 +146,8 @@ This weather application is built with Python and the Flet framework. It provide
 4. **Weather Data Caching and Offline Mode**
 
    ![Caching Demo](assets/gifs/feature4.gif)
-   *Offline mode showing cached data with timestamp indicators*
+
+   ##### *Offline mode showing cached data with timestamp indicators*
 
    - **Description**: The app now saves weather data to your computer so you can still see the last result even when your internet cuts out. Every time you search for a city's weather or check the forecast, the app stores that information in a cache folder as JSON files. Each file includes a timestamp showing when the data was saved. If your internet connection drops or the API fails to respond, the app automatically pulls up the cached version instead of showing an error. You'll see an orange banner at the top that says "Offline Mode - Showing cached data" along with a message telling you when that data was last updated, like "5 minutes ago" or "2 hours ago." The cache expires after 30 minutes by default, but if you're offline, the app will still serve expired cache rather than leave you with nothing. It works for both current weather and the 5-day forecast, so you're covered either way.
 
@@ -197,7 +202,8 @@ This weather application is built with Python and the Flet framework. It provide
 5. **Multiple Cities Comparison with Watchlist**
 
    ![Watchlist Demo](assets/gifs/feature5.gif)
-   *Adding cities to watchlist and comparing weather side-by-side*
+
+   ##### *Adding cities to watchlist and comparing weather side-by-side*
 
    - **Description**: The app now lets you save multiple cities to a watchlist and compare their weather side by side. After you search for a city, a purple "Add to Watchlist" button appears. Click it, and that city gets saved to your watchlist. Once you have at least two cities saved, an orange "Compare Cities" button shows up. Click it, and you get a grid showing weather cards for all your saved cities at once. Each card displays the city name, current temperature, weather condition with an icon, feels-like temperature, humidity, and wind speed. The cards are arranged in rows of three, so you can see everything at a glance. You can switch back to single-city view anytime, and your watchlist persists between sessions. It's saved in a JSON file just like the search history, so your cities stay in the list even after you close the app. The comparison view automatically uses cached data when available, so if you recently searched for those cities, the comparison loads almost instantly without making new API calls.
 
