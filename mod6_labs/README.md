@@ -85,13 +85,6 @@ The development process wasn't smooth. I struggled with Python's OOP fundamental
      - *Challenge*: **Async Function Button Click Error**. When I first wired up the button, I got a weird error: `TypeError: 'coroutine' object is not callable`. The app crashed every time I clicked the location button. I had no idea what a "coroutine object" even was at that point.
      - *Solution*: The issue was how I set up the button's `on_click`. I wrote `on_click=self.get_location_weather()` with parentheses, which called the function immediately instead of passing it as a callback. Since `get_location_weather()` is async, it returned a coroutine object, and the button didn't know what to do with that. I fixed it by using a lambda: `on_click=lambda e: self.page.run_task(self.get_location_weather)`. That way, the function only runs when the button is actually clicked, and `run_task()` handles the async execution properly.
 
-     - *Challenge*: **Missing `httpx` Import**. I kept getting `NameError: name 'httpx' is not defined` when I ran the app. I was using `httpx.AsyncClient()` in my geolocation function, but I forgot to import the library at the top of `main.py`.
-     - *Solution*: Added `import httpx` to the imports section. Simple mistake, but it taught me to be more careful about tracking which libraries I'm using across different parts of the app.
-
-     - *Challenge*: **Extending `WeatherService` for Coordinates**. My `WeatherService` class only had a method for fetching weather by city name. I needed a way to query weather using latitude and longitude instead. At first, I wasn't sure if I should modify the existing method or create a new one.
-     - *Solution*: Created a separate method called `get_weather_by_coordinates(lat, lon)`. It follows the same pattern as `get_weather(city)` but changes the API query parameters from `q=cityname` to `lat=X&lon=Y`. Keeping them separate made the code cleaner and easier to maintain. Now the app supports both search methods without any conflicts.
-
-
 
 ## Screenshots
 [Add 3-5 screenshots showing different aspects of your app]
