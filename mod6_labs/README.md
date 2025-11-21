@@ -7,11 +7,7 @@
 - **Section**: BSCS-3A
 
 ## Project Overview
-This is a weather application I built using Python and the Flet framework. It pulls real-time weather data from cities around the world through the OpenWeatherMap API. The interface follows Material Design principles. It's clean, intuitive, and easy to navigate. Users can check current weather conditions like temperature, humidity, wind speed, and get a description of what's happening outside.
-
-Building this taught me more than I expected. I got hands-on experience with asynchronous programming, learning how `async/await` works with `page.run_task()` to keep the UI responsive while fetching data. I integrated a real API for the first time, dealing with error handling and making sure the app doesn't break when things go wrong. I implemented persistent storage using JSON files, so user data sticks around between sessions. The UI work involved animations and real-time updates, which was challenging but rewarding. And throughout all of this, I got a much better grasp of object-oriented design. I learned how to structure classes properly and keep concerns separated.
-
-The development process wasn't smooth. I struggled with Python's OOP fundamentals, especially understanding when and why to use `self`. Managing the initialization order of class attributes was confusing at first. Getting components to update in real-time took several attempts. And figuring out how to handle events between user interactions and asynchronous operations required patience and a lot of trial and error. But each challenge taught me something new, and I'm happy with how it turned out.
+This weather application is built with Python and the Flet framework. It provides real-time weather information for cities worldwide through the OpenWeatherMap API. The application displays current temperature, humidity levels, wind speed, and weather conditions in a clean, intuitive interface that follows Material Design principles. Users can search for any city by name or use their current location to get instant weather updates. The app also maintains a searchable history of previously viewed locations for quick access.
 
 ## Features Implemented
 
@@ -68,7 +64,7 @@ The development process wasn't smooth. I struggled with Python's OOP fundamental
      - Added new configuration variables in `Config` class for the geolocation API key and base URL
      - Created `get_weather_by_coordinates(lat, lon)` method in `WeatherService` to handle coordinate-based weather queries
      - Built `get_location_weather()` async method that fetches coordinates and retrieves weather data
-     - Added a "Check My Weather" button with a location icon in the UI
+     - Added a "Check My Weather" button with a location icon in the UI (Instead of the instructed "My Location" button name since I thought it is better)
      - Used the same loading and error handling pattern as the city search feature
      - Reused the existing `display_weather()` method to show results without duplicating code
 
