@@ -1,9 +1,38 @@
 # .gitignore
-venv/
-.env
 __pycache__/
 *.pyc
 .DS_Store
 search_history.json
 watchlist.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# Environment
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
 cache/
+*.cache
+
+# Build
+build/
+dist/
+*.egg-info/
