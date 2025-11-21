@@ -5,3 +5,5 @@ __pycache__/
 *.pyc
 .DS_Store
 search_history.json
+watchlist.json
+cache/
