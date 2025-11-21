@@ -76,6 +76,24 @@ class WeatherApp:
             self.on_search(None)
     # End of search history feature functions
 
+    def format_last_updated(self, timestamp: float) -> str:
+        """Format timestamp to readable 'last updated' string."""
+        from datetime import datetime
+        dt = datetime.fromtimestamp(timestamp)
+        now = datetime.now()
+        diff = now - dt
+        
+        if diff.seconds < 60:
+            return "Just now"
+        elif diff.seconds < 3600:
+            minutes = diff.seconds // 60
+            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        elif diff.seconds < 86400:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        else:
+            return dt.strftime("%B %d, %Y at %I:%M %p")
+
     # Geolocation feature
     async def get_location_weather(self):
         """Get weather for current location."""
@@ -397,6 +415,10 @@ class WeatherApp:
         icon_code = data.get("weather", [{}])[0].get("icon", "01d")
         wind_speed = data.get("wind", {}).get("speed", 0)
         
+        # Check if data is from cache (offline mode)
+        is_offline = self.weather_service.is_offline
+        cache_timestamp = self.weather_service.cache.get_timestamp(city_name)
+        
         # Animate weather container
         self.weather_container.animate_opacity = 300
         self.weather_container.opacity = 0
@@ -408,66 +430,107 @@ class WeatherApp:
         self.weather_container.opacity = 1
         self.page.update()
 
+        # Build weather display components
+        weather_components = [
+            # Location
+            ft.Text(
+                f"{city_name}, {country}",
+                size=24,
+                weight=ft.FontWeight.BOLD,
+            ),
+        ]
+        
+        # Add offline indicator if offline
+        if is_offline and cache_timestamp:
+            weather_components.append(
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CLOUD_OFF, size=16, color=ft.Colors.ORANGE_700),
+                            ft.Text(
+                                "Offline Mode - Showing cached data",
+                                size=12,
+                                color=ft.Colors.ORANGE_700,
+                                italic=True,
+                            ),
+                        ],
+                        tight=True,
+                        spacing=5,
+                    ),
+                    bgcolor=ft.Colors.ORANGE_50,
+                    border_radius=5,
+                    padding=8,
+                )
+            )
+        
+        # Add last updated time
+        if cache_timestamp:
+            last_updated_text = self.format_last_updated(cache_timestamp)
+            weather_components.append(
+                ft.Text(
+                    f"Last updated: {last_updated_text}",
+                    size=12,
+                    color=ft.Colors.GREY_600,
+                    italic=True,
+                )
+            )
+        
+        # Add rest of weather display
+        weather_components.extend([
+            # Weather icon and description
+            ft.Row(
+                [
+                    ft.Image(
+                        src=f"https://openweathermap.org/img/wn/{icon_code}@2x.png",
+                        width=100,
+                        height=100,
+                    ),
+                    ft.Text(
+                        description,
+                        size=20,
+                        italic=True,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            
+            # Temperature
+            ft.Text(
+                f"{temp:.1f}°C",
+                size=48,
+                weight=ft.FontWeight.BOLD,
+                color=ft.Colors.BLUE_900,
+            ),
+            
+            ft.Text(
+                f"Feels like {feels_like:.1f}°C",
+                size=16,
+                color=ft.Colors.GREY_700,
+            ),
+            
+            ft.Divider(),
+            
+            # Additional info
+            ft.Row(
+                [
+                    self.create_info_card(
+                        ft.Icons.WATER_DROP,
+                        "Humidity",
+                        f"{humidity}%"
+                    ),
+                    self.create_info_card(
+                        ft.Icons.AIR,
+                        "Wind Speed",
+                        f"{wind_speed} m/s"
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+            ),
+        ])
+
         # Build weather display
         self.weather_container.content = ft.Column(
-            [
-                # Location
-                ft.Text(
-                    f"{city_name}, {country}",
-                    size=24,
-                    weight=ft.FontWeight.BOLD,
-                ),
-                
-                # Weather icon and description
-                ft.Row(
-                    [
-                        ft.Image(
-                            src=f"https://openweathermap.org/img/wn/{icon_code}@2x.png",
-                            width=100,
-                            height=100,
-                        ),
-                        ft.Text(
-                            description,
-                            size=20,
-                            italic=True,
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-                
-                # Temperature
-                ft.Text(
-                    f"{temp:.1f}°C",
-                    size=48,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.BLUE_900,
-                ),
-                
-                ft.Text(
-                    f"Feels like {feels_like:.1f}°C",
-                    size=16,
-                    color=ft.Colors.GREY_700,
-                ),
-                
-                ft.Divider(),
-                
-                # Additional info
-                ft.Row(
-                    [
-                        self.create_info_card(
-                            ft.Icons.WATER_DROP,
-                            "Humidity",
-                            f"{humidity}%"
-                        ),
-                        self.create_info_card(
-                            ft.Icons.AIR,
-                            "Wind Speed",
-                            f"{wind_speed} m/s"
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-                ),
-            ],
+            weather_components,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=10,
         )
@@ -611,6 +674,10 @@ class WeatherApp:
         city_name = data.get('city', {}).get('name', 'Unknown')
         country = data.get('city', {}).get('country', '')
         
+        # Check if data is from cache (offline mode)
+        is_offline = self.weather_service.is_offline
+        cache_timestamp = self.weather_service.cache.get_forecast_timestamp(city_name)
+        
         # Process forecast data
         daily_data = self.process_forecast_data(data)
         
@@ -619,6 +686,51 @@ class WeatherApp:
         self.forecast_container.opacity = 0
         self.forecast_container.visible = True
         self.page.update()
+        
+        # Create forecast header components
+        header_components = [
+            # Title
+            ft.Text(
+                f"5-Day Forecast: {city_name}, {country}",
+                size=20,
+                weight=ft.FontWeight.BOLD,
+            ),
+        ]
+        
+        # Add offline indicator if offline
+        if is_offline and cache_timestamp:
+            header_components.append(
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CLOUD_OFF, size=16, color=ft.Colors.ORANGE_700),
+                            ft.Text(
+                                "Offline Mode - Showing cached data",
+                                size=12,
+                                color=ft.Colors.ORANGE_700,
+                                italic=True,
+                            ),
+                        ],
+                        tight=True,
+                        spacing=5,
+                    ),
+                    bgcolor=ft.Colors.ORANGE_50,
+                    border_radius=5,
+                    padding=8,
+                )
+            )
+        
+        # Add last updated time
+        if cache_timestamp:
+            last_updated_text = self.format_last_updated(cache_timestamp)
+            header_components.append(
+                ft.Text(
+                    f"Last updated: {last_updated_text}",
+                    size=12,
+                    color=ft.Colors.GREY_600,
+                    italic=True,
+                )
+            )
         
         # Create tabs for each day
         tabs = []
@@ -720,12 +832,7 @@ class WeatherApp:
         # Build forecast display with tabs
         self.forecast_container.content = ft.Column(
             [
-                # Title
-                ft.Text(
-                    f"5-Day Forecast: {city_name}, {country}",
-                    size=20,
-                    weight=ft.FontWeight.BOLD,
-                ),
+                *header_components,
                 
                 ft.Divider(),
                 
